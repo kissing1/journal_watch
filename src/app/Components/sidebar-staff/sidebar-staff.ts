@@ -43,6 +43,7 @@ export class SidebarStaff implements OnInit {
   }
 
   navItems: NavItem[] = [
+    { label: 'Dashboard',              icon: '🏠', route: '/staff/dashboard'     },
     { label: 'ค้นหาวารสาร',           icon: '🔍', route: '/search'              },
     { label: 'จัดการ MSU Unwanted',   icon: '🚫', route: '/msu-unwanted'        },
     {

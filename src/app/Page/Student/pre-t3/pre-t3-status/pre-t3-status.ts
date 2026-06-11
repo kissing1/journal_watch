@@ -159,9 +159,9 @@ export class PreT3Status implements OnInit {
     const meetingScheduled = d.faculty_com_approval.meeting_no !== null;
 
     let status: 'pending' | 'approved' | 'rejected';
-    if (overallStatus === 'Approved')                                    status = 'approved';
-    else if (advisorStatus === 'Rejected' || facultyStatus === 'Rejected') status = 'rejected';
-    else                                                                  status = 'pending';
+    if (overallStatus === 'Approved')                                                              status = 'approved';
+    else if (overallStatus === 'Cancelled' || advisorStatus === 'Rejected' || facultyStatus === 'Rejected') status = 'rejected';
+    else                                                                                           status = 'pending';
 
     const created = new Date(d.created_at as unknown as string);
     const daysAgo = Math.floor((Date.now() - created.getTime()) / 86_400_000);
@@ -397,6 +397,33 @@ export class PreT3Status implements OnInit {
   get selectedDetail(): PreT3Detail | null {
     const id = this.selectedId();
     return id ? (this.details[id] ?? null) : null;
+  }
+
+  cancelledLabel = signal('');
+  private _toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+  cancelRequest(id: string, event: MouseEvent): void {
+    event.stopPropagation();
+
+    // optimistic: ลบออกทันที
+    const removed = this.cards.find(c => c.id === id);
+    this.cards = this.cards.filter(c => c.id !== id);
+
+    const numericId = id.replace('PRE-T3-', '');
+    const headers   = new HttpHeaders({ Authorization: `Bearer ${this.auth.token}` });
+    this.http.patch(`${this.constants.API_ENDPOINT}/pre-t3/${numericId}/cancel`, {}, { headers })
+      .subscribe({
+        next: () => {
+          // แสดง toast
+          if (this._toastTimer) clearTimeout(this._toastTimer);
+          this.cancelledLabel.set(`✓ ยกเลิก ${id} เรียบร้อยแล้ว`);
+          this._toastTimer = setTimeout(() => this.cancelledLabel.set(''), 4000);
+        },
+        error: () => {
+          // restore card กลับถ้า API ล้มเหลว
+          if (removed) this.cards = [removed, ...this.cards];
+        },
+      });
   }
 
   openDetail(id: string): void {

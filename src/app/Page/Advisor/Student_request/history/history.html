@@ -1,1 +1,114 @@
-<p>history works!</p>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-title-row">
+      <span class="page-title-icon">📁</span>
+      <h1 class="page-title">ประวัติทั้ง <span class="title-highlight">T3</span></h1>
+    </div>
+    <p class="page-subtitle">คำร้อง Pre-T3 และ T3 ที่ดำเนินการเสร็จสิ้นแล้ว</p>
+  </div>
+
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <a class="tab-item" routerLink="/advisor/pre-t3-request">
+      <span>📋</span><span>Pre-T3 ที่รอลงนาม</span>
+    </a>
+    <a class="tab-item" routerLink="/advisor/t3-request">
+      <span>📊</span><span>T3 ที่รอลงนาม</span>
+    </a>
+    <a class="tab-item tab-active" routerLink="/advisor/history">
+      <span>📁</span><span>ประวัติทั้งหมด</span>
+    </a>
+  </div>
+
+  <!-- FILTER ROW -->
+  <div class="filter-row">
+    <button class="filter-btn" [class.active]="activeFilter() === 'all'"
+            (click)="setFilter('all')">
+      ทั้งหมด
+      <span class="filter-count">{{ countAll }}</span>
+    </button>
+    <button class="filter-btn filter-btn--approved" [class.active]="activeFilter() === 'approved'"
+            (click)="setFilter('approved')">
+      ✅ อนุมัติแล้ว
+      <span class="filter-count">{{ countApproved }}</span>
+    </button>
+    <button class="filter-btn filter-btn--rejected" [class.active]="activeFilter() === 'rejected'"
+            (click)="setFilter('rejected')">
+      ❌ ไม่อนุมัติ
+      <span class="filter-count">{{ countRejected }}</span>
+    </button>
+  </div>
+
+  <!-- CARD LIST -->
+  <div class="card-list">
+
+    @if (isLoading()) {
+      <div class="empty-state">
+        <div class="empty-icon">⏳</div>
+        <div class="empty-text">กำลังโหลดข้อมูล...</div>
+      </div>
+    } @else if (filtered().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <div class="empty-text">ไม่มีข้อมูลในประวัติ</div>
+      </div>
+    } @else {
+      @for (card of filtered(); track card.id) {
+        <div class="req-card">
+
+          <!-- STATUS ICON -->
+          <div [class]="cardIconClass(card)">
+            @if (card.advisorStatus === 'Approved') { ✅ }
+            @else if (card.advisorStatus === 'Rejected') { ❌ }
+            @else { ⏳ }
+          </div>
+
+          <!-- BODY -->
+          <div class="card-body">
+            <div class="card-meta">
+              <span class="card-id">{{ card.id }}</span>
+              <span class="meta-sep">·</span>
+              <span class="card-submitted">ยื่นเมื่อ {{ card.submittedDate }}</span>
+              <span class="meta-sep">·</span>
+              <span [class]="card.itemType === 'T3' ? 'type-badge type-badge--t3' : 'type-badge type-badge--pret3'">
+                {{ card.itemType === 'T3' ? 'T3' : 'Pre-T3' }}
+              </span>
+            </div>
+
+            <div class="card-title">{{ card.articleTitle }}</div>
+
+            <div class="card-tags">
+              @if (card.isDiscontinued) {
+                <span class="tag-discontinued">🚫 {{ card.database }} Discontinued</span>
+              } @else {
+                <span class="tag-db">📘 {{ card.database }}</span>
+              }
+              @if (card.quartile) {
+                <span class="tag-quartile">{{ card.quartile }}</span>
+              }
+              @if (card.pubType) {
+                <span class="tag-type">{{ card.pubType }}</span>
+              }
+              <span class="tag-issn">ISSN: {{ card.issn }}</span>
+              <span class="tag-student">👤 {{ card.studentName }}</span>
+            </div>
+          </div>
+
+          <!-- RIGHT -->
+          <div class="card-right">
+            <span [class]="statusBadgeClass(card)">{{ statusLabel(card) }}</span>
+            @if (actionDateLabel(card)) {
+              <span class="action-date">{{ actionDateLabel(card) }}</span>
+            }
+          </div>
+
+          <span class="card-arrow">›</span>
+        </div>
+      }
+    }
+
+  </div>
+
+</div>

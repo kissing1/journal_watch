@@ -68,6 +68,8 @@
         <div class="current-status">
           @if (card.status === 'approved') {
             <span class="cs-chip cs-approved">✅ อนุมัติสำเร็จ</span>
+          } @else if (card.status === 'cancelled') {
+            <span class="cs-chip cs-cancelled">🚫 ยกเลิกแล้ว</span>
           } @else {
             <span class="cs-chip cs-rejected">❌ ไม่ผ่านการอนุมัติ</span>
           }

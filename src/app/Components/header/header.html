@@ -4,14 +4,16 @@
   <div class="top-bar">
 
     <!-- Hamburger Toggle -->
-    <button class="hamburger"
-            [class.open]="sidebarOpen"
-            (click)="menuClick.emit()"
-            aria-label="Toggle sidebar">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
+    @if (showToggle) {
+      <button class="hamburger"
+              [class.open]="sidebarOpen"
+              (click)="menuClick.emit()"
+              aria-label="Toggle sidebar">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    }
 
     <div class="msu-brand">
      

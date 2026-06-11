@@ -7,7 +7,6 @@ import { Search } from './Page/shared/search/search';
 import { PreT3 } from './Page/Student/pre-t3/pre-t3/pre-t3';
 import { PreT3Status } from './Page/Student/pre-t3/pre-t3-status/pre-t3-status';
 import { PreT3History } from './Page/Student/pre-t3/pre-t3-history/pre-t3-history';
-import { RequestAdvisor } from './Page/Student/request-advisor/request-advisor';
 import { Profile } from './Page/Student/profile/profile';
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -47,8 +46,7 @@ export const routes: Routes = [
       import('./Page/Student/t3/t3-history/t3-history').then(m => m.T3History),
     canActivate: [authGuard],
   },
-  { path: 'request-advisor', component: RequestAdvisor, canActivate: [authGuard] },
-  { path: 'profile', component: Profile, canActivate: [authGuard] },
+{ path: 'profile', component: Profile, canActivate: [authGuard] },
 
   {
     path: 'staff/pre-t3-request',
@@ -78,6 +76,12 @@ export const routes: Routes = [
     path: 'staff/profile',
     loadComponent: () =>
       import('./Page/staff/profile/profile').then(m => m.Profile),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'staff/user-management',
+    loadComponent: () =>
+      import('./Page/staff/manage-users/manage-users').then(m => m.ManageUsers),
     canActivate: [authGuard],
   },
   {

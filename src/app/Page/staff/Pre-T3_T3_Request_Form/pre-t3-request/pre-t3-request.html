@@ -2,16 +2,24 @@
 
   <!-- PAGE TITLE -->
   <div class="page-header">
-    <h1 class="page-title">Pre-T3 / T3</h1>
+    <div class="page-title-row">
+      <span class="page-title-icon">📋</span>
+      <h1 class="page-title">Pre-T3 คำร้อง</h1>
+    </div>
+    <p class="page-subtitle">ตรวจสอบและดำเนินการคำร้อง Pre-T3 ของนิสิต</p>
   </div>
 
   <!-- TAB BAR -->
   <div class="tab-bar">
-    @for (tab of tabs; track tab.label; let i = $index) {
-      <button class="tab-item" [class.active]="activeTab === i" (click)="activeTab = i">
-        <span class="tab-icon">{{ tab.icon }}</span>
-      </button>
-    }
+    <a class="tab-item" routerLink="/staff/pre-t3-request" routerLinkActive="tab-active">
+      <span>📋</span><span>Pre-T3 คำร้อง</span>
+    </a>
+    <a class="tab-item" routerLink="/staff/t3-request" routerLinkActive="tab-active">
+      <span>📊</span><span>T3 คำร้อง</span>
+    </a>
+    <a class="tab-item" routerLink="/staff/history" routerLinkActive="tab-active">
+      <span>📁</span><span>ประวัติทั้งหมด</span>
+    </a>
   </div>
 
   <!-- FILTER CHIPS -->

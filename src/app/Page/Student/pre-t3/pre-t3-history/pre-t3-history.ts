@@ -21,7 +21,7 @@ interface HistoryCard {
   journalStatus: string;
   advisorStatus: ApprovalStatus;
   facultyStatus: ApprovalStatus;
-  status:        'approved' | 'rejected';
+  status:        'approved' | 'rejected' | 'cancelled';
   submittedDate: string;
 }
 
@@ -63,7 +63,7 @@ interface HistoryDetail {
   degree:             string;
   advisor:            string;
   submittedDate:      string;
-  cardStatus:         'approved' | 'rejected';
+  cardStatus:         'approved' | 'rejected' | 'cancelled';
   statusPillText:     string;
   currentStatusTitle: string;
   currentStatusDesc:  string;
@@ -123,7 +123,7 @@ export class PreT3History implements OnInit {
     const completed = data.filter(d => {
       const adv = d.advisor_approval.status;
       const fac = d.faculty_com_approval.status;
-      return d.overall_status === 'Approved' || adv === 'Rejected' || fac === 'Rejected';
+      return d.overall_status === 'Approved' || d.overall_status === 'Cancelled' || adv === 'Rejected' || fac === 'Rejected';
     });
 
     this.cards = completed.map(d => this.mapToCard(d));
@@ -144,7 +144,9 @@ export class PreT3History implements OnInit {
   private mapToCard(d: Datum): HistoryCard {
     const advisorStatus = d.advisor_approval.status as ApprovalStatus;
     const facultyStatus = d.faculty_com_approval.status as ApprovalStatus;
-    const status: 'approved' | 'rejected' = d.overall_status === 'Approved' ? 'approved' : 'rejected';
+    const status: 'approved' | 'rejected' | 'cancelled' =
+      d.overall_status === 'Approved'   ? 'approved'  :
+      d.overall_status === 'Cancelled'  ? 'cancelled' : 'rejected';
 
     return {
       id:            `PRE-T3-${d.pre_t3_id}`,
@@ -166,10 +168,15 @@ export class PreT3History implements OnInit {
   ): HistoryDetail {
     const advisorStatus = d.advisor_approval.status as ApprovalStatus;
     const facultyStatus = d.faculty_com_approval.status as ApprovalStatus;
-    const cardStatus: 'approved' | 'rejected' = d.overall_status === 'Approved' ? 'approved' : 'rejected';
+    const cardStatus: 'approved' | 'rejected' | 'cancelled' =
+      d.overall_status === 'Approved'  ? 'approved'  :
+      d.overall_status === 'Cancelled' ? 'cancelled' : 'rejected';
 
-    const statusPillText      = cardStatus === 'approved' ? '✅ อนุมัติสำเร็จ' : '❌ ไม่ผ่านการอนุมัติ';
-    const currentStatusIcon   = cardStatus === 'approved' ? '✅' : '❌';
+    const statusPillText    = cardStatus === 'approved'  ? '✅ อนุมัติสำเร็จ'
+                            : cardStatus === 'cancelled' ? '🚫 ยกเลิกแล้ว'
+                            :                             '❌ ไม่ผ่านการอนุมัติ';
+    const currentStatusIcon = cardStatus === 'approved'  ? '✅'
+                            : cardStatus === 'cancelled' ? '🚫' : '❌';
     const { title, desc }     = this.buildCurrentStatus(d, info.advisorName);
 
     return {
@@ -209,6 +216,9 @@ export class PreT3History implements OnInit {
     if (over === 'Approved') {
       return { title: 'อนุมัติสำเร็จ', desc: 'คำร้อง Pre-T3 ได้รับการอนุมัติเรียบร้อยแล้ว สามารถยื่น T3 ได้' };
     }
+    if (over === 'Cancelled') {
+      return { title: 'ยกเลิกคำร้องแล้ว', desc: 'นิสิตได้ยกเลิกคำร้อง Pre-T3 นี้ด้วยตนเอง' };
+    }
     if (adv === 'Rejected') {
       return {
         title: 'ไม่ผ่านการอนุมัติจากอาจารย์ที่ปรึกษา',
@@ -241,9 +251,9 @@ export class PreT3History implements OnInit {
     else if (fac === 'Rejected') s3 = { icon: '✗', label: 'รอผลจากที่ประชุม', sub: '✗ ไม่อนุมัติ', date: '-', status: 'active' };
     else s3 = { icon: '✓', label: 'รอผลจากที่ประชุม', sub: '● เสร็จแล้ว', date: '-', status: 'done' };
 
-    const s4: Step = over === 'Approved'
-      ? { icon: '🎓', label: 'อนุมัติสำเร็จพร้อมยื่น T3', sub: '● เสร็จแล้ว', date: '-', status: 'done' }
-      : { icon: '🎓', label: 'อนุมัติสำเร็จพร้อมยื่น T3', sub: '○ ไม่ผ่านการอนุมัติ', date: '-', status: 'pending' };
+    const s4: Step = over === 'Approved'    ? { icon: '🎓', label: 'อนุมัติสำเร็จพร้อมยื่น T3', sub: '● เสร็จแล้ว',        date: '-', status: 'done'    }
+                   : over === 'Cancelled'  ? { icon: '🚫', label: 'อนุมัติสำเร็จพร้อมยื่น T3', sub: '○ ยกเลิกคำร้องแล้ว', date: '-', status: 'pending' }
+                   :                        { icon: '🎓', label: 'อนุมัติสำเร็จพร้อมยื่น T3', sub: '○ ไม่ผ่านการอนุมัติ', date: '-', status: 'pending' };
 
     return [s1, s2, s3, s4];
   }
@@ -288,11 +298,20 @@ export class PreT3History implements OnInit {
       }
     }
 
+    if (d.overall_status === 'Cancelled') {
+      items.push({
+        icon: '🚫', actor: 'นิสิต', badge: 'ยกเลิก', badgeType: 'waiting',
+        message: 'ยกเลิกคำร้อง Pre-T3 ด้วยตนเอง',
+      });
+    }
+
     return items;
   }
 
   cardClass(card: HistoryCard): string {
-    return card.status === 'approved' ? 'req-card req-card--approved' : 'req-card req-card--rejected';
+    if (card.status === 'approved')   return 'req-card req-card--approved';
+    if (card.status === 'cancelled')  return 'req-card req-card--cancelled';
+    return 'req-card req-card--rejected';
   }
 
   get selectedDetail(): HistoryDetail | null {

@@ -21,61 +21,178 @@
     </div>
   </div>
 
-  <!-- FILTER CHIPS -->
-  <div class="filter-bar">
-    <button class="filter-btn filter-btn--active">ทั้งหมด</button>
-    <button class="filter-btn">✅ อนุมัติแล้ว</button>
-    <button class="filter-btn">⏳ กำลังดำเนิน</button>
-    <button class="filter-btn">❌ ไม่อนุมัติ</button>
-  </div>
+  <!-- CANCEL TOAST -->
+  @if (cancelledLabel()) {
+    <div class="cancel-toast">{{ cancelledLabel() }}</div>
+  }
 
   <!-- CARD LIST -->
   <div class="card-list">
+    @if (isLoading()) {
+      <div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-text">กำลังโหลดข้อมูล...</div></div>
+    } @else if (cards.length === 0) {
+      <div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">ยังไม่มีคำร้อง T3</div></div>
+    }
 
-    <!-- Card: กำลังดำเนิน -->
-    <div class="req-card req-card--pending">
-      <div class="req-card-left">
-        <div class="req-status-icon req-status-icon--pending">⏳</div>
-      </div>
-      <div class="req-card-body">
-        <div class="req-card-meta">T3-2568-001 · ยื่นเมื่อ 2 พ.ค. 68</div>
-        <div class="req-card-title">การพัฒนาระบบ AI สำหรับการตรวจสอบคุณภาพวารสารวิชาการโดยใช้ Machine Learning</div>
-        <div class="req-card-tags">
-          <span class="tag-db">📘 Scopus</span>
-          <span class="tag-q">Q2</span>
-          <span class="tag-issn">ISSN: 2319-7064</span>
-          <span class="tag-degree">ป.เอก · แผน 2.1</span>
+    @for (card of cards; track card.id) {
+      <div [class]="cardClass(card)" (click)="openDetail(card)">
+
+        <!-- STATUS ICON -->
+        <div class="req-card-left">
+          @if (card.overallStatus === 'Approved') {
+            <div class="req-status-icon req-status-icon--approved">✅</div>
+          } @else if (card.advisorStatus === 'Rejected' || card.facultyStatus === 'Rejected' || card.gradStatus === 'Rejected') {
+            <div class="req-status-icon req-status-icon--rejected">❌</div>
+          } @else {
+            <div class="req-status-icon req-status-icon--pending">⏳</div>
+          }
         </div>
-      </div>
-      <div class="req-card-right">
-        <span class="cs-chip cs-pending">⏳ กำลังดำเนิน</span>
-        <span class="req-card-step">ขั้น 3/5 · เจ้าหน้าที่ตรวจ</span>
-      </div>
-      <span class="req-card-arrow">›</span>
-    </div>
 
-    <!-- Card: อนุมัติแล้ว -->
-    <div class="req-card req-card--approved">
-      <div class="req-card-left">
-        <div class="req-status-icon req-status-icon--approved">✅</div>
-      </div>
-      <div class="req-card-body">
-        <div class="req-card-meta">T3-2567-003 · ยื่นเมื่อ 15 ม.ค. 67</div>
-        <div class="req-card-title">Deep Learning Applications in Thai Natural Language Processing: A Comprehensive Survey</div>
-        <div class="req-card-tags">
-          <span class="tag-db">📘 Scopus</span>
-          <span class="tag-q">Q1</span>
-          <span class="tag-issn">ISSN: 2045-2322</span>
-          <span class="tag-degree">ป.เอก · แผน 2.1</span>
+        <!-- BODY -->
+        <div class="req-card-body">
+          <div class="req-card-meta">{{ card.id }} · ยื่นเมื่อ {{ card.submittedDate }} · {{ card.daysAgo }} วันที่แล้ว</div>
+          <div class="req-card-title">{{ card.titleThai || card.titleEn }}</div>
+          <div class="req-card-tags">
+            <span class="tag-db">📘 {{ card.database }}</span>
+            <span class="tag-issn">ISSN: {{ card.issn }}</span>
+            <span class="tag-type">{{ card.pubType }}</span>
+          </div>
         </div>
-      </div>
-      <div class="req-card-right">
-        <span class="cs-chip cs-approved">✅ อนุมัติแล้ว</span>
-        <span class="req-card-step">อนุมัติ 28 ม.ค. 67</span>
-      </div>
-      <span class="req-card-arrow">›</span>
-    </div>
 
+        <!-- RIGHT -->
+        <div class="req-card-right">
+          <span [class]="'cs-chip ' + (card.overallStatus === 'Approved' ? 'cs-approved' : (card.advisorStatus === 'Rejected' || card.facultyStatus === 'Rejected' || card.gradStatus === 'Rejected') ? 'cs-rejected' : 'cs-pending')">
+            {{ currentStatusLabel(card) }}
+          </span>
+          <button class="btn-cancel-card" (click)="cancelRequest(card.id, card.t3Id, $event)">✕ ยกเลิกคำร้องขอ</button>
+        </div>
+
+        <span class="req-card-arrow">›</span>
+      </div>
+    }
   </div>
 
 </div>
+
+<!-- ═══ DETAIL MODAL ═══ -->
+@if (selectedId()) {
+  <div class="modal-backdrop" (click)="closeDetail()">
+    <div class="modal-panel" (click)="$event.stopPropagation()">
+
+      @if (detailLoading()) {
+        <div class="modal-loading">⏳ กำลังโหลดรายละเอียด...</div>
+      } @else if (selectedDetail; as d) {
+
+        <!-- MODAL HEADER -->
+        <div class="mh">
+          <div class="mh-row1">
+            <div class="mh-icon-title">
+              <span class="mh-file-icon">📋</span>
+              <span class="mh-title">รายละเอียดคำร้อง T3</span>
+            </div>
+            <div class="mh-row1-right">
+              <span class="mh-id-chip">{{ d.id }}</span>
+              <button class="modal-close" (click)="closeDetail()">✕</button>
+            </div>
+          </div>
+
+          <div class="mh-meta">
+            เลขที่คำร้อง: <strong>{{ d.id }}</strong>
+            <span class="mh-sep">·</span>
+            ผู้แต่งหลัก: <strong>{{ d.firstAuthor }}</strong>
+            <span class="mh-sep">·</span>
+            ระดับ: <strong>{{ d.degree }}</strong>
+          </div>
+
+          <div class="mh-content">
+            <div class="mh-left">
+              <div class="mh-journal-row">
+                <span class="mh-journal">{{ d.titleThai }}</span>
+              </div>
+              @if (d.titleEn) {
+                <div class="mh-journal-en">{{ d.titleEn }}</div>
+              }
+            </div>
+            <div class="mh-right">
+              <div class="mh-date-box">
+                <div class="mh-date-val">{{ d.submittedDate }}</div>
+                <div class="mh-date-lbl">วันที่ยื่น</div>
+              </div>
+              <div class="mh-status-pill" [class]="'mh-status-pill mh-status-pill--' + d.cardStatus">{{ d.statusPillText }}</div>
+            </div>
+          </div>
+
+          <div class="mh-grid">
+            <div class="mh-cell"><span class="mh-lbl">ISSN</span><span class="mh-val mono">{{ d.issn }}</span></div>
+            <div class="mh-cell"><span class="mh-lbl">วารสาร</span><span class="mh-val">{{ d.journalName }}</span></div>
+            <div class="mh-cell"><span class="mh-lbl">ฐานข้อมูล</span><span class="mh-val">{{ d.database }}</span></div>
+            <div class="mh-cell"><span class="mh-lbl">Volume</span><span class="mh-val mono">{{ d.volume || '-' }}</span></div>
+            <div class="mh-cell"><span class="mh-lbl">Issue</span><span class="mh-val mono">{{ d.issue || '-' }}</span></div>
+            <div class="mh-cell"><span class="mh-lbl">ปีที่ตีพิมพ์</span><span class="mh-val">{{ d.publishYear || '-' }}</span></div>
+          </div>
+        </div>
+
+        <!-- MODAL BODY -->
+        <div class="modal-body">
+
+          <!-- Stepper -->
+          <div class="ms-card">
+            <div class="ms-head">🔄 ขั้นตอนการอนุมัติ T3</div>
+            <div class="stepper-wrap">
+              @for (step of d.steps; track step.label) {
+                <div [class]="'step-item ' + step.status">
+                  <div class="step-circle" [class]="step.status">{{ step.icon }}</div>
+                  <div class="step-label" [class]="step.status">{{ step.label }}</div>
+                  <div class="step-sub" [class]="step.status">{{ step.sub }}</div>
+                  <div class="step-date">{{ step.date }}</div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Current Status -->
+          <div class="ms-current" [class]="'ms-current ms-current--' + d.cardStatus">
+            <div class="ms-current-icon">{{ d.currentStatusIcon }}</div>
+            <div class="ms-current-body">
+              <div class="ms-current-title">{{ d.currentStatusTitle }}</div>
+              <div class="ms-current-desc">{{ d.currentStatusDesc }}</div>
+            </div>
+          </div>
+
+          <!-- Timeline -->
+          <div class="ms-log-wrap">
+            <div class="ms-log-head"><span>📋</span><span>ประวัติการดำเนินการ</span></div>
+            <div class="ms-log-body">
+              <div class="timeline">
+                @for (item of d.timeline; track item.actor; let last = $last) {
+                  <div class="tl-item">
+                    <div class="tl-left">
+                      <div class="tl-icon" [class]="'tl-' + item.badgeType">{{ item.icon }}</div>
+                      @if (!last) { <div class="tl-line"></div> }
+                    </div>
+                    <div class="tl-body">
+                      <div class="tl-actor-row">
+                        <span class="tl-actor">{{ item.actor }}</span>
+                        <span class="tl-badge" [class]="'tb-' + item.badgeType">{{ item.badge }}</span>
+                        @if (item.time) { <span class="tl-time">{{ item.time }}</span> }
+                      </div>
+                      <div class="tl-message">{{ item.message }}</div>
+                      @if (item.detail) { <div class="tl-detail">{{ item.detail }}</div> }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /modal-body -->
+
+        <!-- MODAL FOOTER -->
+        <div class="modal-footer">
+          <button class="btn-mf btn-mf-close" (click)="closeDetail()">ปิด</button>
+        </div>
+
+      }
+    </div><!-- /modal-panel -->
+  </div><!-- /modal-backdrop -->
+}

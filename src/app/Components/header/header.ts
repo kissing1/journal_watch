@@ -8,6 +8,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
   styleUrls: ['./header.scss'],
 })
 export class Header {
-  @Input() sidebarOpen = true;
-  @Output() menuClick = new EventEmitter<void>();
+  @Input() sidebarOpen  = true;
+  @Input() showToggle   = true;
+  @Output() menuClick   = new EventEmitter<void>();
 }

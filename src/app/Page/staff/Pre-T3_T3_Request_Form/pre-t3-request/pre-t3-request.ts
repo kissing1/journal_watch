@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, ChangeDetectorRef, NgZone, ApplicationRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, of } from 'rxjs';
 import { AuthService } from '../../../../auth.service';
@@ -76,7 +77,7 @@ const AVATAR_COLORS = [
 @Component({
   selector: 'app-pre-t3-request',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './pre-t3-request.html',
   styleUrl: './pre-t3-request.scss',
 })
@@ -90,7 +91,6 @@ export class PreT3Request implements OnInit {
 
   // ── list state ────────────────────────────────────
   isLoading         = true;
-  activeTab         = 0;
   activeFilter      = 'all';
   cards: PreT3Card[]= [];
 
@@ -135,12 +135,6 @@ export class PreT3Request implements OnInit {
 
   private datumMap  = new Map<string, Datum>();
 
-  tabs = [
-    { icon: '📋', label: 'Pre-T3' },
-    { icon: '📊', label: 'T3'     },
-    { icon: '✅', label: 'อนุมัติ' },
-    { icon: '📁', label: 'ประวัติ' },
-  ];
 
   filters = [
     { key: 'all',           label: 'ทั้งหมด'    },

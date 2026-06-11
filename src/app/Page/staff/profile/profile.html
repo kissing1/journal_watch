@@ -1,1 +1,165 @@
-<p>profile works!</p>
+<div class="profile-page">
+
+  @if (isLoading()) {
+    <div class="loading-wrap">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">กำลังโหลดข้อมูลโปรไฟล์...</div>
+    </div>
+  }
+
+  @if (!isLoading() && profile(); as p) {
+
+    <!-- ═══ HERO BANNER ═══ -->
+    <div class="profile-hero">
+      <div class="profile-hero__bg"></div>
+      <div class="profile-hero__content">
+        <div class="profile-avatar-wrap">
+          @if (profilePicture && !imgError) {
+            <img class="profile-avatar" [src]="profilePicture" alt="avatar" (error)="onImgError()" />
+          } @else {
+            <div class="profile-avatar profile-avatar--fallback">{{ initials }}</div>
+          }
+          <div class="profile-avatar-badge">✓</div>
+        </div>
+        <div class="profile-hero__info">
+          <div class="profile-hero__role">{{ roleLabel(p.role) }}</div>
+          <h1 class="profile-hero__name">{{ p.prefix ? p.prefix + ' ' : '' }}{{ p.firstName }} {{ p.lastName }}</h1>
+          <div class="profile-hero__email">{{ p.msuMail }}</div>
+        </div>
+      </div>
+      <div class="profile-hero__status">
+        <div class="status-chip" [class.status-chip--active]="p.accountStatus === 'active'">
+          {{ p.accountStatus === 'active' ? '● Active' : p.accountStatus }}
+        </div>
+        <div class="last-login">เข้าสู่ระบบล่าสุด: {{ formatDate(p.lastLoginAt) }}</div>
+      </div>
+    </div>
+
+    <!-- ═══ CARDS GRID ═══ -->
+    <div class="profile-grid">
+
+      <!-- Account Info -->
+      <div class="info-card">
+        <div class="info-card__head">
+          <span class="info-card__icon">🪪</span>
+          <span class="info-card__title">ข้อมูลบัญชี</span>
+        </div>
+        <div class="info-rows">
+          <div class="info-row">
+            <span class="info-row__label">รหัสผู้ใช้</span>
+            <span class="info-row__value info-row__value--mono">#{{ p.userId }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-row__label">ชื่อ - นามสกุล</span>
+            <span class="info-row__value">{{ p.firstName }} {{ p.lastName }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-row__label">อีเมล MSU</span>
+            <span class="info-row__value info-row__value--mono">{{ p.msuMail }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-row__label">บทบาท</span>
+            <span class="info-row__value">
+              <span class="role-badge">{{ roleLabel(p.role) }}</span>
+            </span>
+          </div>
+          <div class="info-row">
+            <span class="info-row__label">สถานะบัญชี</span>
+            <span class="info-row__value">
+              <span class="status-dot" [class.status-dot--active]="p.accountStatus === 'active'"></span>
+              {{ p.accountStatus === 'active' ? 'ใช้งานอยู่' : p.accountStatus }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Info -->
+      <div class="info-card">
+        <div class="info-card__head">
+          <span class="info-card__icon">📞</span>
+          <span class="info-card__title">ข้อมูลติดต่อ</span>
+          @if (!isEditing()) {
+            <button class="btn-edit" (click)="openEdit()">✏️ แก้ไข</button>
+          }
+        </div>
+
+        @if (!isEditing()) {
+          <div class="info-rows">
+            <div class="info-row">
+              <span class="info-row__label">เบอร์โทรศัพท์</span>
+              <span class="info-row__value">{{ p.phone || '—' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-row__label">Facebook ID</span>
+              <span class="info-row__value">{{ p.facebookId || '—' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-row__label">Line ID</span>
+              <span class="info-row__value">{{ p.lineId || '—' }}</span>
+            </div>
+          </div>
+        } @else {
+          <!-- Edit Form -->
+          <div class="edit-form">
+            <div class="edit-field">
+              <label class="edit-label">📞 เบอร์โทรศัพท์</label>
+              <input class="edit-input" type="tel" placeholder="เช่น 0812345678"
+                     [(ngModel)]="editForm.phone" />
+            </div>
+            <div class="edit-field">
+              <label class="edit-label">🔵 Facebook ID</label>
+              <input class="edit-input" type="text" placeholder="ชื่อ Facebook หรือ URL"
+                     [(ngModel)]="editForm.facebook_id" />
+            </div>
+            <div class="edit-field">
+              <label class="edit-label">💚 Line ID</label>
+              <input class="edit-input" type="text" placeholder="Line ID ของคุณ"
+                     [(ngModel)]="editForm.line_id" />
+            </div>
+
+            @if (saveResult(); as r) {
+              <div [class]="r.ok ? 'save-banner save-banner--ok' : 'save-banner save-banner--err'">
+                {{ r.ok ? '✅' : '⚠️' }} {{ r.msg }}
+              </div>
+            }
+
+            <div class="edit-actions">
+              <button class="btn-cancel" (click)="cancelEdit()" [disabled]="isSaving()">ยกเลิก</button>
+              <button class="btn-save" (click)="saveEdit()" [disabled]="isSaving()">
+                @if (isSaving()) {
+                  <span class="btn-spinner"></span> กำลังบันทึก...
+                } @else {
+                  💾 บันทึกข้อมูล
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Last Login Info -->
+      <div class="info-card info-card--wide">
+        <div class="info-card__head">
+          <span class="info-card__icon">🕐</span>
+          <span class="info-card__title">ข้อมูลการเข้าใช้งาน</span>
+        </div>
+        <div class="info-rows">
+          <div class="info-row">
+            <span class="info-row__label">เข้าสู่ระบบล่าสุด</span>
+            <span class="info-row__value">{{ formatDate(p.lastLoginAt) }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-row__label">คณะ / หน่วยงาน</span>
+            <span class="info-row__value">{{ p.faculty || 'บัณฑิตวิทยาลัย' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-row__label">ภาควิชา</span>
+            <span class="info-row__value">{{ p.department || '—' }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  }
+
+</div>

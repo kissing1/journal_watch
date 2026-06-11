@@ -72,12 +72,6 @@ export class Sidebar {
         },
       ],
     },
-    {
-      group: 'การจัดการ',
-      items: [
-        { label: 'ร้องขออาจารย์ที่ปรึกษา', icon: '🤝', route: '/request-advisor' },
-      ],
-    },
   ];
 
   toggleExpand(label: string): void {

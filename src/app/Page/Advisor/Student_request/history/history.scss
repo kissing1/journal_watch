@@ -1,0 +1,152 @@
+$navy:   #1C2744;
+$yellow: #E8A800;
+$green:  #1A7A42;
+$red:    #C0392B;
+$border: #E2E6F0;
+$bg:     #F4F6FA;
+$muted:  #6B7280;
+$text:   #374151;
+$white:  #FFFFFF;
+
+.page {
+  padding: 28px 28px 80px;
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: 'Sarabun', sans-serif;
+}
+
+/* ── HEADER ── */
+.page-header     { display: flex; flex-direction: column; gap: 4px; }
+.page-title-row  { display: flex; align-items: center; gap: 10px; }
+.page-title-icon { font-size: 22px; }
+.page-title      { font-size: 22px; font-weight: 800; color: $navy; margin: 0; }
+.title-highlight { color: $yellow; }
+.page-subtitle   { font-size: 13px; color: $muted; margin: 0; }
+
+/* ── TAB BAR ── */
+.tab-bar  { display: flex; border-bottom: 2px solid $border; }
+.tab-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 20px; font-size: 14px; font-weight: 600; color: $muted;
+  text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -2px;
+  transition: all 0.2s;
+  &:hover     { color: $navy; }
+  &.tab-active { color: $navy; border-bottom-color: $yellow; font-weight: 700; }
+}
+
+/* ── FILTER ROW ── */
+.filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.filter-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 18px; border-radius: 99px; border: 1.5px solid $border;
+  background: $white; color: $text; font-size: 13px; font-weight: 600;
+  font-family: 'Sarabun', sans-serif; cursor: pointer; transition: all 0.18s;
+  &:hover   { border-color: $navy; color: $navy; }
+  &.active  { background: $navy; color: $white; border-color: $navy; }
+
+  &--approved.active { background: #065F46; border-color: #065F46; color: $white; }
+  &--rejected.active  { background: #991B1B; border-color: #991B1B; color: $white; }
+}
+.filter-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 20px; border-radius: 99px; padding: 0 6px;
+  font-size: 11px; font-weight: 800;
+  background: rgba(0,0,0,0.08); color: inherit;
+}
+
+/* ── CARD LIST ── */
+.card-list { display: flex; flex-direction: column; gap: 12px; }
+
+.req-card {
+  display: flex; align-items: center; gap: 16px;
+  background: $white; border: 1.5px solid $border; border-radius: 14px;
+  padding: 18px 20px; cursor: default;
+  transition: box-shadow 0.18s, border-color 0.18s;
+  &:hover { box-shadow: 0 4px 18px rgba(28,39,68,0.09); border-color: rgba(28,39,68,0.18); }
+}
+
+/* ── STATUS ICON ── */
+.card-icon {
+  flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+
+  &--approved { background: rgba(26,122,66,0.1); border: 2px solid rgba(26,122,66,0.25); }
+  &--rejected  { background: rgba(192,57,43,0.1);  border: 2px solid rgba(192,57,43,0.25);  }
+  &--pending  { background: rgba(232,168,0,0.1);   border: 2px solid rgba(232,168,0,0.25);  }
+}
+
+/* ── CARD BODY ── */
+.card-body  { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+
+.card-meta  { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.card-id    { font-size: 12px; font-weight: 700; color: $muted; font-family: monospace; }
+.meta-sep   { font-size: 12px; color: #CBD5E1; }
+.card-submitted { font-size: 12px; color: $muted; }
+
+.type-badge {
+  font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.03em;
+  &--t3    { background: rgba(28,39,68,0.08); color: $navy;  }
+  &--pret3 { background: rgba(232,168,0,0.12); color: #92600A; }
+}
+
+.card-title {
+  font-size: 14px; font-weight: 700; color: #1E3A5F;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 560px;
+}
+
+.card-tags { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+.tag-db {
+  font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 99px;
+  background: rgba(26,95,171,0.1); color: #1A5FAB; border: 1px solid rgba(26,95,171,0.2);
+}
+.tag-discontinued {
+  font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 99px;
+  background: rgba(192,57,43,0.08); color: $red; border: 1px solid rgba(192,57,43,0.2);
+}
+.tag-quartile {
+  font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px;
+  background: rgba(26,122,66,0.1); color: #065F46; border: 1px solid rgba(26,122,66,0.2);
+}
+.tag-type {
+  font-size: 11px; color: $muted; padding: 2px 8px; border-radius: 99px;
+  border: 1px solid $border; background: $bg;
+}
+.tag-issn {
+  font-size: 11px; color: $muted; padding: 2px 8px; border-radius: 99px;
+  border: 1px solid $border; background: $bg; font-family: monospace;
+}
+.tag-student {
+  font-size: 11px; color: $muted; padding: 2px 8px; border-radius: 99px;
+  border: 1px solid $border; background: $bg;
+}
+
+/* ── CARD RIGHT ── */
+.card-right {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+  flex-shrink: 0; min-width: 130px;
+}
+
+.status-badge {
+  font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 99px; white-space: nowrap;
+  &.status-approved { background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; }
+  &.status-rejected  { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+  &.status-pending  { background: #FEF3C7; color: #92600A; border: 1px solid #FDE68A; }
+}
+
+.action-date { font-size: 11px; color: $muted; }
+
+/* ── ARROW ── */
+.card-arrow {
+  font-size: 20px; color: #CBD5E1; flex-shrink: 0; line-height: 1;
+}
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center; padding: 60px 20px; color: $muted;
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-text { font-size: 15px; font-weight: 600; }
+}
