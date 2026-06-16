@@ -20,7 +20,7 @@ export class App {
 
   get isLoginPage(): boolean {
     const url = this.router.url;
-    return url === '/' || url === '' || url.startsWith('/login');
+    return url === '/' || url === '' || url.startsWith('/login') || url.startsWith('/register');
   }
 
   get isAdvisor(): boolean {

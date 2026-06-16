@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { Login } from './Login/login/login';
+import { RegisterStaff } from './Login/register-staff/register-staff';
 import { authGuard } from './auth.guard';
 
 import { MsuUnwanted } from './Page/shared/msu-unwanted/msu-unwanted';
@@ -11,6 +12,7 @@ import { Profile } from './Page/Student/profile/profile';
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: Login },
+  { path: 'register', component: RegisterStaff },
   {
     path: 'dashboard',
     loadComponent: () =>
