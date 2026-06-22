@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap');
-
+﻿
 :host {
   display: block;
   font-family: 'Inter', 'Sarabun', sans-serif;
@@ -171,32 +170,30 @@
   letter-spacing: 0.03em;
 }
 
-/* Back button — top-left of page */
+/* Back button — top-left inside card */
 .back-btn {
-  position: absolute;
-  top: 24px;
-  left: 28px;
-  z-index: 10;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 9px 18px;
+  gap: 6px;
+  padding: 8px 16px;
+  margin: 12px 20px 0;
+  align-self: flex-start;
   border-radius: 99px;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: #fff;
+  background: #F4F6FA;
+  border: 1.5px solid #E2E6F0;
+  color: #374151;
   font-size: 13px;
   font-weight: 600;
   font-family: 'Sarabun', sans-serif;
   text-decoration: none;
-  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
 
   svg { flex-shrink: 0; }
 
   &:hover {
-    background: rgba(255, 255, 255, 0.28);
-    border-color: rgba(255, 255, 255, 0.55);
+    background: #1C2744;
+    border-color: #1C2744;
+    color: #fff;
     transform: translateX(-2px);
   }
 }

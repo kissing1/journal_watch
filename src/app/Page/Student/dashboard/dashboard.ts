@@ -15,6 +15,7 @@ export class Dashboard {
   get userName()    { return `${this.authService.user?.firstName ?? ''} ${this.authService.user?.lastName ?? ''}`.trim(); }
   get userEmail()   { return this.authService.user?.msuMail ?? ''; }
   get userRole()    { return this.authService.user?.role ?? ''; }
+  get userPicture() { return this.authService.userPicture; }
  
 
   steps = [

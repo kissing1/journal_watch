@@ -16,10 +16,14 @@
   <!-- PAGE TITLE -->
   <div class="page-title-row">
     <span class="page-icon">📊</span>
-    <div>
+    <div class="page-title-group">
       <h1 class="page-title">สถานะ Pre-T3</h1>
       <p class="page-sub">ติดตามความคืบหน้าคำร้องของคุณ</p>
     </div>
+    <button class="btn-refresh" (click)="refresh()" [disabled]="isRefreshing()">
+      <span class="refresh-icon" [class.spinning]="isRefreshing()">↻</span>
+      @if (isRefreshing()) { กำลังโหลด... } @else { รีเฟรช }
+    </button>
   </div>
 
   <!-- CANCEL TOAST -->
@@ -31,7 +35,7 @@
   <div class="card-list">
     @if (isLoading()) {
       <div class="empty-state">
-        <div class="empty-icon">⏳</div>
+        <div class="loading-spinner"></div>
         <div class="empty-text">กำลังโหลดข้อมูล...</div>
       </div>
     } @else if (cards.length === 0) {
@@ -91,11 +95,11 @@
             } @else if (card.advisorStatus === 'Rejected' || card.facultyStatus === 'Rejected') {
               <span class="cs-chip cs-rejected">❌ ไม่ผ่านการอนุมัติ</span>
             } @else if (card.advisorStatus === 'Pending') {
-              <span class="cs-chip cs-pending">⏳ รออาจารย์ที่ปรึกษาอนุมัติ</span>
+              <span class="cs-chip cs-pending">รออาจารย์ที่ปรึกษาอนุมัติ</span>
             } @else if (card.advisorStatus === 'Approved' && card.facultyStatus === 'Pending') {
-              <span class="cs-chip cs-pending">⏳ รอที่ประชุมอนุมัติ</span>
+              <span class="cs-chip cs-pending">รอที่ประชุมอนุมัติ</span>
             } @else {
-              <span class="cs-chip cs-pending">⏳ กำลังดำเนินการ</span>
+              <span class="cs-chip cs-pending">กำลังดำเนินการ</span>
             }
           </div>
           <button class="btn-cancel-card" (click)="cancelRequest(card.id, $event)">✕ ยกเลิกคำร้องขอ</button>
@@ -225,29 +229,11 @@
           </div>
         </div>
 
-        <!-- Section: Attachments -->
-        <div class="ms-card">
-          <div class="ms-head">📎 เอกสารประกอบ</div>
-          <div class="attach-list">
-            @for (a of d.attachments; track a.name) {
-              <div class="attach-item">
-                <span class="attach-icon">{{ a.icon }}</span>
-                <div class="attach-body">
-                  <div class="attach-name">{{ a.name }}</div>
-                  <div class="attach-meta">{{ a.meta }} · {{ a.size }}</div>
-                </div>
-                <button class="btn-download">⬇ ดาวน์โหลด</button>
-              </div>
-            }
-          </div>
-        </div>
-
       </div><!-- /modal-body -->
 
       <!-- ══ MODAL FOOTER ══ -->
       <div class="modal-footer">
-        <button class="btn-mf btn-mf-print">🖨 พิมพ์ใบคำร้อง</button>
-        <button class="btn-mf btn-mf-cancel" (click)="cancelRequest(d.id, $event); closeDetail()">❌ ยกเลิกคำร้อง</button>
+<button class="btn-mf btn-mf-cancel" (click)="cancelRequest(d.id, $event); closeDetail()">❌ ยกเลิกคำร้อง</button>
         <button class="btn-mf btn-mf-t3" [disabled]="d.cardStatus !== 'approved'">
           @if (d.cardStatus === 'approved') { ⬆ ยื่น T3 } @else { ⬆ ยื่น T3 (รออนุมัติ Pre-T3 ก่อน) }
         </button>

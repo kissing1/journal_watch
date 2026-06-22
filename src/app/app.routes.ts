@@ -1,6 +1,9 @@
 import { Routes } from '@angular/router';
 import { Login } from './Login/login/login';
 import { RegisterStaff } from './Login/register-staff/register-staff';
+import { AboutJournalWatch } from './Page/shared/about-journal-watch/about-journal-watch';
+import { Manual } from './Page/shared/manual/manual';
+import { Contact } from './Page/shared/contact/contact';
 import { authGuard } from './auth.guard';
 
 import { MsuUnwanted } from './Page/shared/msu-unwanted/msu-unwanted';
@@ -13,6 +16,9 @@ export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: Login },
   { path: 'register', component: RegisterStaff },
+  { path: 'about', component: AboutJournalWatch },
+  { path: 'manual', component: Manual },
+  { path: 'contact', component: Contact },
   {
     path: 'dashboard',
     loadComponent: () =>

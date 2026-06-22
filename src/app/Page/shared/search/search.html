@@ -1,4 +1,64 @@
-<div class="search-page">
+<!-- ═══ CAPTCHA MODAL ═══ -->
+  @if (showCaptcha()) {
+    <div class="captcha-backdrop" (click)="showCaptcha.set(false)">
+      <div class="captcha-modal" (click)="$event.stopPropagation()">
+
+        <div class="captcha-topbar"></div>
+
+        <div class="captcha-header">
+          <div class="captcha-icon">🛡️</div>
+          <div>
+            <div class="captcha-title">ยืนยันตัวตน</div>
+            <div class="captcha-subtitle">กรุณาแก้โจทย์เพื่อยืนยันว่าคุณไม่ใช่บอท</div>
+          </div>
+        </div>
+
+        <div class="captcha-body">
+
+          <!-- Puzzle canvas area -->
+          <div class="puzzle-wrap">
+            <canvas #bgCanvas [width]="CW" [height]="CH" class="puzzle-bg"></canvas>
+            <canvas #pieceCanvas [width]="PS" [height]="CH" class="puzzle-piece"
+                    [style.left.px]="puzzlePieceX()"
+                    (mousedown)="puzzleStartDrag($event)"
+                    (touchstart)="puzzleStartDrag($event)"></canvas>
+          </div>
+
+          @if (puzzleError()) {
+            <div class="captcha-error-msg">ตำแหน่งไม่ถูกต้อง — กรุณาลองใหม่อีกครั้ง</div>
+          }
+
+          <!-- Slider track -->
+          <div class="puzzle-slider-wrap">
+            <div class="puzzle-slider-track">
+              <div class="puzzle-slider-fill" [style.width.px]="puzzlePieceX()"></div>
+              <div class="puzzle-slider-handle"
+                   [style.left.px]="puzzlePieceX()"
+                   (mousedown)="puzzleStartDrag($event)"
+                   (touchstart)="puzzleStartDrag($event)">
+                ›
+              </div>
+            </div>
+            <span class="puzzle-slider-hint">← เลื่อนจิ๊กซอว์ให้เข้ารูป</span>
+          </div>
+
+          <div class="captcha-actions">
+            <button class="captcha-btn-refresh" (click)="refreshCaptcha()" type="button">
+              ↺ รีเซ็ต
+            </button>
+          </div>
+
+          <div class="captcha-note">🔒 ไม่ต้องยืนยันซ้ำภายใน 60 นาที</div>
+
+        </div>
+
+      </div>
+    </div>
+  }
+
+<!-- BG BAND: full width, เฉพาะ search-card + legend-card -->
+<div class="search-bg-band">
+  <div class="search-band-inner">
 
   <!-- SEARCH HEADER CARD -->
   <div class="search-card">
@@ -29,10 +89,28 @@
           (keyup.enter)="search()"
         />
       </div>
-      <select class="degree-select" [(ngModel)]="degree">
-        <option value="doctoral">ป.เอก (Doctoral)</option>
-        <option value="master">ป.โท (Master)</option>
-      </select>
+      <!-- Custom degree dropdown -->
+      <div class="custom-select" [class.cs-open]="showDegreeMenu()">
+        @if (showDegreeMenu()) {
+          <div class="cs-backdrop" (click)="showDegreeMenu.set(false)"></div>
+        }
+        <button class="cs-trigger" type="button" (click)="showDegreeMenu.set(!showDegreeMenu())">
+          <span class="cs-value">{{ selectedDegreeLabel }}</span>
+          <svg class="cs-arrow" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 1l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        @if (showDegreeMenu()) {
+          <div class="cs-dropdown">
+            @for (opt of degreeOptions; track opt.value) {
+              <div class="cs-option" [class.cs-option--active]="degree === opt.value" (click)="selectDegree(opt.value)">
+                @if (degree === opt.value) { <span class="cs-check">✓</span> }
+                {{ opt.label }}
+              </div>
+            }
+          </div>
+        }
+      </div>
       <button class="search-btn" (click)="search()" [disabled]="isLoading()">
         @if (isLoading()) {
           <span class="spin-icon">⏳</span> กำลังค้นหา...
@@ -69,36 +147,8 @@
       }
     </div>
 
-  </div>
+  </div><!-- /search-card -->
 
-  <!-- COMPARISON CARDS -->
-  <div class="comparison-grid">
-    @for (m of methods; track m.id) {
-      <div class="compare-card" [class.selected]="method === m.id" (click)="method = m.id">
-        <div class="compare-card-header">
-          <span class="compare-icon">{{ m.icon }}</span>
-          <span class="compare-title">{{ m.label }}</span>
-          <span class="compare-badge"
-            [class.badge-amber]="m.badgeColor === 'amber'"
-            [class.badge-red]="m.badgeColor === 'red'">
-            {{ m.badge }}
-          </span>
-        </div>
-        <div class="compare-rows">
-          @for (c of comparison; track c.label) {
-            <div class="compare-row">
-              <span class="compare-label">{{ c.label }}</span>
-              <span class="compare-value"
-                [class.ok]="m.id === 'scraping' ? c.scrapingOk : c.apiOk"
-                [class.bad]="m.id === 'scraping' ? !c.scrapingOk : !c.apiOk">
-                {{ m.id === 'scraping' ? c.scraping : c.api }}
-              </span>
-            </div>
-          }
-        </div>
-      </div>
-    }
-  </div>
 
   <!-- LEGEND -->
   <div class="legend-card">
@@ -111,8 +161,12 @@
         </div>
       }
     </div>
-  </div>
+  </div><!-- /legend-card -->
 
+  </div><!-- /search-band-inner -->
+</div><!-- /search-bg-band -->
+
+<div class="search-page">
   <!-- LOADING -->
   @if (isLoading()) {
     <div class="loading-card">
@@ -626,7 +680,7 @@
             <button class="btn-t3" disabled>ยื่น T3</button>
             <span class="action-note">ระบบของเราไม่สามารถเปิดให้ยื่น T3 จนกว่า Pre-T3 จะได้รับการ approved</span>
           }
-          <button class="btn-print">พิมพ์/PDF</button>
+          <button class="btn-print" (click)="printResult()">พิมพ์/PDF</button>
         </div>
 
       </div>
@@ -827,7 +881,7 @@
               <button class="btn-t3" disabled>ยื่น T3</button>
               <span class="action-note">ระบบของเราไม่สามารถเปิดให้ยื่น T3 จนกว่า Pre-T3 จะได้รับการ approved</span>
             }
-            <button class="btn-print">พิมพ์/PDF</button>
+            <button class="btn-print" (click)="printResult()">พิมพ์/PDF</button>
           </div>
 
         </div>
@@ -849,5 +903,5 @@
       <button class="btn-secondary" (click)="hasSearched.set(false); errorMessage.set('')">ลองใหม่</button>
     </div>
   }
+</div><!-- /search-page -->
 
-</div>

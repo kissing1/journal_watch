@@ -193,6 +193,14 @@ export class T3History implements OnInit {
     document.body.style.overflow = '';
   }
 
+  printDetail(): void {
+    document.body.classList.add('modal-print');
+    window.addEventListener('afterprint', () => {
+      document.body.classList.remove('modal-print');
+    }, { once: true });
+    window.print();
+  }
+
   private buildDetail(d: T3Detail): T3DetailView {
     const adv  = d.advisor_approval.status as ApprovalStatus;
     const fac  = d.faculty_com_approval.status as ApprovalStatus;

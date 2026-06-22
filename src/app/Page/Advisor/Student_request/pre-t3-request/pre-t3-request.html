@@ -54,7 +54,7 @@
   <div class="card-list">
     @if (isLoading()) {
       <div class="empty-state">
-        <div class="empty-icon">⏳</div>
+        <div class="loading-spinner"></div>
         <div class="empty-text">กำลังโหลดข้อมูล...</div>
       </div>
     }
@@ -95,12 +95,6 @@
       </div>
     }
 
-    @if (filtered().length === 0) {
-      <div class="empty-state">
-        <div class="empty-icon">📭</div>
-        <div class="empty-text">ไม่มีคำร้องในหมวดนี้</div>
-      </div>
-    }
   </div>
 
 </div>
@@ -139,7 +133,7 @@
           </div>
 
           @if (isDetailLoading()) {
-            <div class="detail-loading">⏳ กำลังโหลดข้อมูล...</div>
+            <div class="detail-loading"><div class="loading-spinner"></div><span>กำลังโหลดข้อมูล...</span></div>
           } @else if (detailData(); as d) {
             <div class="detail-grid">
               <div class="detail-field">
@@ -338,7 +332,8 @@
               <button class="btn-cancel" (click)="closeDetail()">ยกเลิก</button>
               <button class="btn-draft">💾 บันทึกร่าง</button>
               <button class="btn-approve" (click)="submitDecision()" [disabled]="isSubmitting() || !canSubmit">
-                {{ isSubmitting() ? '⏳ กำลังส่ง...' : '✅ ลงนาม' }}
+                @if (isSubmitting()) { <span class="btn-spinner"></span> กำลังส่ง... }
+                @else { ✅ ลงนาม }
               </button>
             </div>
           </div>

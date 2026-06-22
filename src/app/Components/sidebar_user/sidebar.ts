@@ -36,8 +36,6 @@ export class Sidebar {
     return (f + l).toUpperCase();
   }
 
-  
-
   expandedItems = new Set<string>();
 
   navGroups: NavGroup[] = [

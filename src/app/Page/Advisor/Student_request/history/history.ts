@@ -7,27 +7,56 @@ import { AuthService } from '../../../../auth.service';
 import { Constants } from '../../../../comfig/constants';
 import { T3HistoryAdvisor, Item as T3Item } from '../../../../model/res/t3_history_advisor';
 import { PreT3HistoryAdvisor, Item as PreT3Item } from '../../../../model/res/pre-t3_history_advisor';
+import { GetDeteilsT3Res, Data as T3Detail } from '../../../../model/res/get_deteils_T3_res';
+import { PreT3DetailsRes, Data as PreT3Detail } from '../../../../model/res/Pre-T3_details_res';
 
-type FilterType = 'all' | 'approved' | 'rejected';
+type FilterType    = 'all' | 'approved' | 'rejected';
 type AdvisorStatus = 'Approved' | 'Rejected' | 'Pending';
 
 interface HistoryCard {
   id:             string;
+  rawId:          number;
   itemType:       'T3' | 'PreT3';
   studentName:    string;
   studentId:      string;
+  email:          string;
   articleTitle:   string;
   journalName:    string;
   issn:           string;
   database:       string;
   quartile:       string;
   pubType:        string;
+  pubStatus:      string;
   isDiscontinued: boolean;
   submittedDate:  string;
   advisorStatus:  AdvisorStatus;
+  advisorRemark:  string | null;
   actionDate:     string | null;
   updatedAt:      Date;
 }
+
+interface ChecklistItem { id: number; title: string; status: 'pass' | 'fail'; }
+
+const CHECKLIST_TITLES: Record<string, string> = {
+  item1: 'มาตรฐานวารสารนานาชาติที่มีคุณภาพตามเกณฑ์',
+  item2: 'วารสารมีโปรไฟล์หน้าเว็บที่อ้างอิงในฐานข้อมูล MSU',
+  item3: 'กำหนดออกเผยแพร่อย่างสม่ำเสมอ (Continuous Publication)',
+  item4: 'กำหนดการกลั่นกรอง (Systematic review) ของวารสาร',
+  item5: 'มีคณะกรรมการวิชาการวารสารระดับนานาชาติ (International Editorial Board)',
+  item6: 'มีระบบ Peer Review ที่ชัดเจน',
+  item7: 'ปฏิบัติตามจรรยาบรรณมาตรฐานสากล',
+  item8: 'ไม่ใช่ Hijacked Journal',
+  item9: 'อ้างอิงฐานข้อมูลของ Scopus / TCI จะใช้ได้',
+};
+
+const EVIDENCE_FILES: { key: string; label: string; icon: string }[] = [
+  { key: 'acceptance_letter',  label: 'หนังสือตอบรับ',     icon: '📄' },
+  { key: 'full_paper',         label: 'บทความฉบับสมบูรณ์', icon: '📑' },
+  { key: 'journal_cover',      label: 'ปกวารสาร',          icon: '📰' },
+  { key: 'table_of_contents',  label: 'สารบัญ',            icon: '📋' },
+  { key: 'database_evidence',  label: 'หลักฐานฐานข้อมูล',  icon: '🔍' },
+  { key: 'peer_review_result', label: 'ผล Peer Review',     icon: '📝' },
+];
 
 @Component({
   selector: 'app-history',
@@ -41,14 +70,23 @@ export class History implements OnInit {
   private auth      = inject(AuthService);
   private constants = inject(Constants);
 
+  readonly evidenceFiles = EVIDENCE_FILES;
+
   private readonly THAI_MONTHS = [
     'ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.',
     'ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.',
   ];
 
-  isLoading    = signal(true);
-  activeFilter = signal<FilterType>('all');
-  allCards     = signal<HistoryCard[]>([]);
+  isLoading       = signal(true);
+  isDetailLoading = signal(false);
+  activeFilter    = signal<FilterType>('all');
+  allCards        = signal<HistoryCard[]>([]);
+  selectedCard    = signal<HistoryCard | null>(null);
+  detailDataT3    = signal<T3Detail | null>(null);
+  detailDataPreT3 = signal<PreT3Detail | null>(null);
+
+  fileLoading: Record<string, boolean> = {};
+  fileViewing: Record<string, boolean> = {};
 
   filtered = computed(() => {
     const f   = this.activeFilter();
@@ -63,6 +101,16 @@ export class History implements OnInit {
   get countRejected(): number { return this.allCards().filter(c => c.advisorStatus === 'Rejected').length; }
 
   setFilter(f: FilterType): void { this.activeFilter.set(f); }
+
+  checklistItems(): ChecklistItem[] {
+    const data = this.detailDataPreT3();
+    if (!data?.checklist_data) return [];
+    return Object.entries(CHECKLIST_TITLES).map(([key, title], i) => ({
+      id:     i + 1,
+      title,
+      status: data.checklist_data[key] ? 'pass' : 'fail',
+    }));
+  }
 
   ngOnInit(): void {
     const headers = new HttpHeaders({ Authorization: `Bearer ${this.auth.token}` });
@@ -91,18 +139,22 @@ export class History implements OnInit {
 
     return {
       id:            `T3-${d.t3_id}`,
+      rawId:         d.t3_id,
       itemType:      'T3',
       studentName:   d.student_name,
       studentId:     d.student_email.replace('@msu.ac.th', ''),
+      email:         d.student_email,
       articleTitle:  d.paper_and_research_details.title_thai || d.paper_and_research_details.title_english,
       journalName:   d.journal_snapshot.journal_name,
       issn:          d.issn || d.journal_snapshot.issn,
       database:      d.publication_details.specified_database,
       quartile:      '',
       pubType:       d.publication_details.type,
+      pubStatus:     d.publication_details.status,
       isDiscontinued: false,
       submittedDate: this.formatDate(d.created_at),
       advisorStatus,
+      advisorRemark: d.advisor_approval.remark,
       actionDate:    d.advisor_approval.approved_at ? this.formatDate(d.advisor_approval.approved_at) : null,
       updatedAt:     new Date(d.updated_at as unknown as string),
     };
@@ -120,21 +172,97 @@ export class History implements OnInit {
 
     return {
       id:            `PRE-T3-${d.pre_t3_id}`,
+      rawId:         d.pre_t3_id,
       itemType:      'PreT3',
       studentName:   d.student_name,
       studentId:     d.student_email.replace('@msu.ac.th', ''),
+      email:         d.student_email,
       articleTitle,
       journalName:   d.journal_snapshot.journal_name,
       issn:          d.journal_snapshot.issn,
       database:      d.journal_snapshot.indexed_database,
       quartile:      d.journal_snapshot.quartile_or_tier ?? '',
       pubType:       '',
+      pubStatus:     '',
       isDiscontinued: d.journal_snapshot.is_discontinued,
       submittedDate: this.formatDate(d.created_at),
       advisorStatus,
+      advisorRemark: d.advisor_approval.remark,
       actionDate:    d.advisor_approval.approved_at ? this.formatDate(d.advisor_approval.approved_at) : null,
       updatedAt:     new Date(d.updated_at as unknown as string),
     };
+  }
+
+  openDetail(card: HistoryCard): void {
+    this.selectedCard.set(card);
+    this.detailDataT3.set(null);
+    this.detailDataPreT3.set(null);
+    this.fileLoading = {};
+    this.fileViewing = {};
+    document.body.style.overflow = 'hidden';
+
+    this.isDetailLoading.set(true);
+    const headers = new HttpHeaders({ Authorization: `Bearer ${this.auth.token}` });
+
+    if (card.itemType === 'T3') {
+      this.http
+        .get<GetDeteilsT3Res>(`${this.constants.API_ENDPOINT}/t3/${card.rawId}`, { headers })
+        .pipe(catchError(() => of(null)))
+        .subscribe(res => {
+          this.isDetailLoading.set(false);
+          if (res?.success) this.detailDataT3.set(res.data);
+        });
+    } else {
+      this.http
+        .get<PreT3DetailsRes>(`${this.constants.API_ENDPOINT}/pre-t3/${card.rawId}`, { headers })
+        .pipe(catchError(() => of(null)))
+        .subscribe(res => {
+          this.isDetailLoading.set(false);
+          if (res?.success) this.detailDataPreT3.set(res.data);
+        });
+    }
+  }
+
+  closeDetail(): void {
+    this.selectedCard.set(null);
+    this.detailDataT3.set(null);
+    this.detailDataPreT3.set(null);
+    this.fileLoading = {};
+    this.fileViewing = {};
+    document.body.style.overflow = '';
+  }
+
+  private fetchFile(t3Id: number, fileKey: string, stateMap: Record<string, boolean>, onBlob: (blob: Blob) => void): void {
+    if (stateMap[fileKey]) return;
+    stateMap[fileKey] = true;
+    const headers = new HttpHeaders({ Authorization: `Bearer ${this.auth.token}` });
+    this.http
+      .get(`${this.constants.API_ENDPOINT}/upload/t3/${t3Id}/files/${fileKey}`,
+           { headers, responseType: 'blob' })
+      .pipe(catchError(() => of(null)))
+      .subscribe(blob => {
+        stateMap[fileKey] = false;
+        if (blob) onBlob(blob);
+      });
+  }
+
+  downloadFile(t3Id: number, fileKey: string): void {
+    this.fetchFile(t3Id, fileKey, this.fileLoading, blob => {
+      const url = URL.createObjectURL(blob);
+      const a   = document.createElement('a');
+      a.href     = url;
+      a.download = `${fileKey}_T3-${t3Id}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  viewFile(t3Id: number, fileKey: string): void {
+    this.fetchFile(t3Id, fileKey, this.fileViewing, blob => {
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    });
   }
 
   private formatDate(date: Date | string | null): string {

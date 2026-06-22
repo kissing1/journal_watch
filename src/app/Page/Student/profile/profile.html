@@ -1,18 +1,5 @@
 <div class="profile-page">
 
-  <!-- HEADER -->
-  <div class="page-header">
-    <div class="header-top">
-      <h1 class="page-title">โปรไฟล์<span class="accent">ของฉัน</span></h1>
-      @if (!isLoading() && me()) {
-        <button class="btn-edit-toggle" [class.active]="isEditing()" (click)="toggleEdit()">
-          {{ isEditing() ? '✕ ยกเลิก' : '✏️ แก้ไข' }}
-        </button>
-      }
-    </div>
-    <p class="page-sub">ข้อมูลส่วนตัว · สถานะการยื่นเรื่อง · วารสารที่บันทึกไว้</p>
-  </div>
-
   <!-- LOADING -->
   @if (isLoading()) {
     <div class="loading-card">
@@ -23,185 +10,210 @@
 
   @if (!isLoading() && me(); as d) {
 
-    <!-- PROFILE CARD -->
-    <div class="profile-card">
-      <div class="card-topbar"></div>
-
-      <!-- Avatar -->
-      <div class="avatar-wrap">
-        @if (userPicture) {
-          <img class="avatar-img" [src]="userPicture" alt="avatar" referrerpolicy="no-referrer"/>
-        } @else {
-          <div class="avatar-initial">{{ initials }}</div>
+    <!-- ── HERO BANNER ── -->
+    <div class="hero-banner">
+      <div class="hero-left">
+        <div class="hero-avatar-wrap">
+          @if (userPicture) {
+            <img class="hero-avatar-img" [src]="userPicture" alt="avatar" referrerpolicy="no-referrer"/>
+          } @else {
+            <div class="hero-avatar-init">{{ initials }}</div>
+          }
+          <span class="hero-dot"></span>
+        </div>
+        <div class="hero-meta">
+          <div class="hero-role">{{ d.role }}</div>
+          <div class="hero-name">{{ fullName }}</div>
+          <div class="hero-email">{{ d.msuMail }}</div>
+        </div>
+      </div>
+      <div class="hero-right">
+        <span class="hero-status">{{ d.accountStatus }}</span>
+        @if (d.lastLoginAt) {
+          <div class="hero-login-time">เข้าสู่ระบบล่าสุด: {{ d.lastLoginAt | date:'dd/MM/yyyy HH:mm' }}</div>
         }
-        <span class="online-dot"></span>
       </div>
+    </div>
 
-      <!-- Name & Role -->
-      <div class="profile-name">{{ fullName || 'ผู้ใช้งาน' }}</div>
-      <div class="role-badge">🎓 {{ d.role }}</div>
-      <div class="profile-sub">MSU Google Account · {{ d.msuMail }}</div>
+    <!-- ── TWO-COLUMN GRID ── -->
+    <div class="profile-grid">
 
-      <!-- Info List -->
-      <div class="info-list">
-        <div class="info-row">
-          <div class="info-left">
-            
-            <span class="info-label">MSU Mail</span>
+      <!-- ข้อมูลบัญชี -->
+      <div class="pcard">
+        <div class="pcard-topbar"></div>
+        <div class="pcard-body">
+          <div class="pcard-hd">
+            <span class="pcard-icon">🪪</span>
+            <span class="pcard-title">ข้อมูลบัญชี</span>
           </div>
-          <span class="info-value">{{ d.msuMail }}</span>
-        </div>
-        <div class="info-row">
-          <div class="info-left">
-
-            <span class="info-label">ระดับการศึกษา</span>
-          </div>
-          <span class="info-value">{{ d.degreeLevel || '—' }}</span>
-        </div>
-        <div class="info-row">
-          <div class="info-left">
-
-            <span class="info-label">แผนการเรียน</span>
-          </div>
-          <span class="info-value">{{ d.studyPlanCode || '—' }}</span>
-        </div>
-        <div class="info-row">
-          <div class="info-left">
-
-            <span class="info-label">ปีหลักสูตร</span>
-          </div>
-          <span class="info-value">{{ d.curriculumYear || '—' }}</span>
-        </div>
-        <div class="info-row">
-          <div class="info-left">
-            
-            <span class="info-label">เบอร์โทรศัพท์</span>
-          </div>
-          <span class="info-value">{{ d.phone || '—' }}</span>
-        </div>
-        <div class="info-row">
-          <div class="info-left">
-            
-            <span class="info-label">Facebook ID</span>
-          </div>
-          <span class="info-value">{{ d.facebookId || '—' }}</span>
-        </div>
-        <div class="info-row">
-          <div class="info-left">
-            
-            <span class="info-label">Line ID</span>
-          </div>
-          <span class="info-value">{{ d.lineId || '—' }}</span>
-        </div>
-        <div class="info-row">
-          <div class="info-left">
-            
-            <span class="info-label">วิธีเข้าสู่ระบบ</span>
-          </div>
-          <span class="info-value">Google OAuth 2.0</span>
-        </div>
-        <div class="info-row">
-          <div class="info-left">
-           
-            <span class="info-label">สถานะบัญชี</span>
-          </div>
-          <span class="info-value status-active">{{ d.accountStatus }}</span>
-        </div>
-      </div>
-
-      <!-- Advisor Section -->
-      @if (advisorMain) {
-        <div class="advisor-card">
-          <div class="advisor-title">👨‍🏫 อาจารย์ที่ปรึกษา</div>
-          <div class="advisor-row">
-            <span class="advisor-type">หลัก</span>
-            <span class="advisor-name">
-              {{ advisorMain.prefix ?? '' }} {{ advisorMain.firstName }} {{ advisorMain.lastName }}
-            </span>
-            <span class="advisor-mail">{{ advisorMain.msuMail }}</span>
-          </div>
-          @for (co of advisorCo; track co.userId) {
-            <div class="advisor-row">
-              <span class="advisor-type">ร่วม</span>
-              <span class="advisor-name">
-                {{ co.prefix ?? '' }} {{ co.firstName }} {{ co.lastName }}
+          <div class="row-list">
+            <div class="row-item">
+              <span class="row-label">รหัสผู้ใช้</span>
+              <span class="row-val mono">#{{ d.userId }}</span>
+            </div>
+            <div class="row-item">
+              <span class="row-label">ชื่อ - นามสกุล</span>
+              <span class="row-val bold">{{ fullName }}</span>
+            </div>
+            <div class="row-item">
+              <span class="row-label">อีเมล MSU</span>
+              <span class="row-val bold">{{ d.msuMail }}</span>
+            </div>
+            <div class="row-item">
+              <span class="row-label">บทบาท</span>
+              <span class="role-pill">{{ d.role }}</span>
+            </div>
+            <div class="row-item">
+              <span class="row-label">สถานะบัญชี</span>
+              <span class="row-val status-val">
+                <span class="status-dot"></span>{{ d.accountStatus }}
               </span>
-              <span class="advisor-mail">{{ co.msuMail }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ข้อมูลติดต่อ -->
+      <div class="pcard">
+        <div class="pcard-topbar"></div>
+        <div class="pcard-body">
+          <div class="pcard-hd">
+            <span class="pcard-icon">📞</span>
+            <span class="pcard-title">ข้อมูลติดต่อ</span>
+            <button class="btn-edit" [class.btn-edit--cancel]="isEditing()" (click)="toggleEdit()">
+              {{ isEditing() ? '✕ ยกเลิก' : '✏️ แก้ไข' }}
+            </button>
+          </div>
+
+          @if (!isEditing()) {
+            <div class="row-list">
+              <div class="row-item">
+                <span class="row-label">เบอร์โทรศัพท์</span>
+                <span class="row-val bold">{{ d.phone || '—' }}</span>
+              </div>
+              <div class="row-item">
+                <span class="row-label">Facebook ID</span>
+                <span class="row-val bold">{{ d.facebookId || '—' }}</span>
+              </div>
+              <div class="row-item">
+                <span class="row-label">Line ID</span>
+                <span class="row-val">{{ d.lineId || '—' }}</span>
+              </div>
+            </div>
+          } @else {
+            <div class="edit-fields">
+              <div class="edit-field">
+                <label class="edit-label">📞 เบอร์โทรศัพท์</label>
+                <input class="edit-input" type="tel"
+                       [ngModel]="phone()" (ngModelChange)="phone.set($event)"
+                       placeholder="0812345678"/>
+              </div>
+              <div class="edit-field">
+                <label class="edit-label">📘 Facebook ID</label>
+                <input class="edit-input"
+                       [ngModel]="facebookId()" (ngModelChange)="facebookId.set($event)"
+                       placeholder="somchai.jaidee"/>
+              </div>
+              <div class="edit-field">
+                <label class="edit-label">💬 Line ID</label>
+                <input class="edit-input"
+                       [ngModel]="lineId()" (ngModelChange)="lineId.set($event)"
+                       placeholder="somchai_line"/>
+              </div>
+              @if (saveResult() === 'success') {
+                <div class="save-result success">✓ บันทึกข้อมูลสำเร็จ</div>
+              }
+              @if (saveResult() === 'error') {
+                <div class="save-result error">✗ เกิดข้อผิดพลาด กรุณาลองใหม่</div>
+              }
+              <button class="btn-save" (click)="saveProfile()" [disabled]="isSaving()">
+                @if (isSaving()) { <span class="save-spinner"></span> กำลังบันทึก... }
+                @else            { 💾 บันทึกข้อมูล }
+              </button>
             </div>
           }
         </div>
-      }
-
-      <!-- Verified Banner -->
-      <div class="verified-banner">
-        ✓ MSU Google Account ยืนยันแล้ว · บัญชี Active
       </div>
+    </div>
 
-      <!-- Stats -->
-      <div class="stats-row">
-        @for (s of stats; track s.label) {
-          <div class="stat-item">
-            <div class="stat-value" [style.color]="s.color">{{ s.value }}</div>
-            <div class="stat-label">{{ s.label }}</div>
+    <!-- ── ข้อมูลการศึกษา ── -->
+    @if (d.degreeLevel || d.studyPlanCode || d.curriculumYear) {
+      <div class="pcard full-pcard">
+        <div class="pcard-topbar"></div>
+        <div class="pcard-body">
+          <div class="pcard-hd">
+            <span class="pcard-icon">🎓</span>
+            <span class="pcard-title">ข้อมูลการศึกษา</span>
           </div>
-        }
+          <div class="row-list row-list--3col">
+            <div class="row-item">
+              <span class="row-label">ระดับการศึกษา</span>
+              <span class="row-val bold">{{ d.degreeLevel || '—' }}</span>
+            </div>
+            <div class="row-item">
+              <span class="row-label">แผนการเรียน</span>
+              <span class="row-val bold">{{ d.studyPlanCode || '—' }}</span>
+            </div>
+            <div class="row-item">
+              <span class="row-label">ปีหลักสูตร</span>
+              <span class="row-val bold">{{ d.curriculumYear || '—' }}</span>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-
-    <!-- EDIT PROFILE CARD -->
-    @if (isEditing()) {
-    <div class="edit-card">
-      <div class="edit-card-header">
-        <span class="edit-icon">✏️</span>
-        <span class="edit-title">แก้ไขข้อมูลส่วนตัว</span>
-        <span class="edit-note">แก้ไขได้เฉพาะข้อมูลด้านล่าง</span>
-      </div>
-      <div class="edit-divider"></div>
-
-      <div class="edit-field">
-        <label class="edit-label">
-          <span class="edit-label-icon">📞</span> เบอร์โทรศัพท์
-        </label>
-        <input class="edit-input" type="tel"
-               [ngModel]="phone()" (ngModelChange)="phone.set($event)"
-               placeholder="0812345678"/>
-      </div>
-
-      <div class="edit-field">
-        <label class="edit-label">
-          <span class="edit-label-icon">📘</span> Facebook ID
-        </label>
-        <input class="edit-input"
-               [ngModel]="facebookId()" (ngModelChange)="facebookId.set($event)"
-               placeholder="somchai.jaidee"/>
-      </div>
-
-      <div class="edit-field">
-        <label class="edit-label">
-          <span class="edit-label-icon">💬</span> Line ID
-        </label>
-        <input class="edit-input"
-               [ngModel]="lineId()" (ngModelChange)="lineId.set($event)"
-               placeholder="somchai_line"/>
-      </div>
-
-      <!-- Save Result -->
-      @if (saveResult() === 'success') {
-        <div class="save-result success">✓ บันทึกข้อมูลสำเร็จ</div>
-      }
-      @if (saveResult() === 'error') {
-        <div class="save-result error">✗ เกิดข้อผิดพลาด กรุณาลองใหม่</div>
-      }
-
-      <button class="btn-save" (click)="saveProfile()" [disabled]="isSaving()">
-        @if (isSaving()) {
-          <span class="save-spinner"></span> กำลังบันทึก...
-        } @else {
-          💾 บันทึกข้อมูล
-        }
-      </button>
-    </div>
     }
+
+    <!-- ── อาจารย์ที่ปรึกษา ── -->
+    @if (advisorMain) {
+      <div class="pcard full-pcard">
+        <div class="pcard-topbar"></div>
+        <div class="pcard-body">
+          <div class="pcard-hd">
+            <span class="pcard-icon">👨‍🏫</span>
+            <span class="pcard-title">อาจารย์ที่ปรึกษา</span>
+          </div>
+          <div class="row-list">
+            <div class="row-item advisor-row">
+              <span class="advisor-pill">หลัก</span>
+              <span class="row-val bold">{{ advisorMain.prefix ?? '' }} {{ advisorMain.firstName }} {{ advisorMain.lastName }}</span>
+              <span class="advisor-mail">{{ advisorMain.msuMail }}</span>
+            </div>
+            @for (co of advisorCo; track co.userId) {
+              <div class="row-item advisor-row">
+                <span class="advisor-pill co">ร่วม</span>
+                <span class="row-val bold">{{ co.prefix ?? '' }} {{ co.firstName }} {{ co.lastName }}</span>
+                <span class="advisor-mail">{{ co.msuMail }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ── ข้อมูลการเข้าใช้งาน ── -->
+    <div class="pcard full-pcard">
+      <div class="pcard-topbar"></div>
+      <div class="pcard-body">
+        <div class="pcard-hd">
+          <span class="pcard-icon">🕐</span>
+          <span class="pcard-title">ข้อมูลการเข้าใช้งาน</span>
+        </div>
+        <div class="row-list row-list--3col">
+          <div class="row-item">
+            <span class="row-label">เข้าสู่ระบบล่าสุด</span>
+            <span class="row-val bold">{{ d.lastLoginAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="row-item">
+            <span class="row-label">คณะ / หน่วยงาน</span>
+            <span class="row-val bold">{{ d.faculty || '—' }}</span>
+          </div>
+          <div class="row-item">
+            <span class="row-label">ภาควิชา</span>
+            <span class="row-val bold">{{ d.department || '—' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
   }
 

@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap');
-
+﻿
 
 
 :host {
@@ -260,6 +259,21 @@
   background: #E4E0D8;
 }
 
+/* Google button wrapper */
+.google-btn-wrap {
+  width: 100%;
+  position: relative;
+}
+
+.google-btn-hidden {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
 /* Google button */
 .google-btn {
   display: flex;
@@ -294,6 +308,7 @@
     transform: translateY(0);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
+
 }
 
 .google-icon-wrap {
@@ -342,6 +357,36 @@
   border-radius: 50%;
   background: #E8A800;
   flex-shrink: 0;
+}
+
+/* Staff register link */
+.staff-register-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px dashed rgba(28,39,68,0.2);
+  background: rgba(28,39,68,0.03);
+}
+
+.staff-register-label {
+  font-size: 13px;
+  color: rgba(0,0,0,0.45);
+  font-family: 'Sarabun', sans-serif;
+  flex: 1;
+}
+
+.staff-register-btn {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1C2744;
+  font-family: 'Sarabun', sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.2s;
+
+  &:hover { color: #E8A800; }
 }
 
 /* DEV ONLY */

@@ -1,3 +1,4 @@
+﻿
 $navy:   #1C2744;
 $yellow: #E8A800;
 $border: #E2E6F0;
@@ -92,6 +93,32 @@ $text:   #374151;
   align-items: start;
 }
 
+/* ── PAGE HEADER ── */
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: $navy;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.page-title-highlight {
+  color: $yellow;
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: $muted;
+  margin: 0;
+}
+
 /* ── FORM WRAP ── */
 .form-wrap {
   display: flex;
@@ -100,20 +127,24 @@ $text:   #374151;
 }
 
 .form-card {
-  background: $white;
-  border: 1.5px solid $border;
-  border-radius: 16px;
+  background: $bg;
+  border-radius: 12px;
+  border: 1.5px solid rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
+  animation: slideUp 0.22s ease;
 }
 
-.form-card-label {
-  background: $navy;
-  color: rgba(255,255,255,0.6);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  padding: 8px 20px;
-  font-family: 'IBM Plex Mono', monospace;
+.card-bar {
+  height: 6px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, #262D40 0%, #E0A100 100%);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ── FORM SECTIONS ── */

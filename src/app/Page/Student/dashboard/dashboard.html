@@ -2,8 +2,15 @@
 
   <!-- WELCOME -->
   <section class="welcome-section">
+    <div class="hero-overlay"></div>
 
-    <div class="welcome-icon">🎓</div>
+    <div class="welcome-icon">
+      @if (userPicture) {
+        <img class="welcome-avatar" [src]="userPicture" [alt]="userName" referrerpolicy="no-referrer" />
+      } @else {
+        🎓
+      }
+    </div>
 
     <div class="welcome-content">
       <h1>ยินดีต้อนรับสู่ Journal Watch</h1>

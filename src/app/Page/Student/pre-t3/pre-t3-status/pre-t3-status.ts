@@ -46,13 +46,6 @@ interface TimelineItem {
   time?:     string;
 }
 
-interface Attachment {
-  icon: string;
-  name: string;
-  meta: string;
-  size: string;
-}
-
 interface PreT3Detail {
   id:                 string;
   studentName:        string;
@@ -72,9 +65,8 @@ interface PreT3Detail {
   currentStatusTitle: string;
   currentStatusDesc:  string;
   currentStatusIcon:  string;
-  steps:              Step[];
-  timeline:           TimelineItem[];
-  attachments:        Attachment[];
+  steps:    Step[];
+  timeline: TimelineItem[];
 }
 
 @Component({
@@ -85,8 +77,9 @@ interface PreT3Detail {
   styleUrl: './pre-t3-status.scss',
 })
 export class PreT3Status implements OnInit {
-  selectedId = signal<string | null>(null);
-  isLoading  = signal(true);
+  selectedId   = signal<string | null>(null);
+  isLoading    = signal(true);
+  isRefreshing = signal(false);
 
   cards:   PreT3Card[]               = [];
   details: Record<string, PreT3Detail> = {};
@@ -103,6 +96,20 @@ export class PreT3Status implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.loadData();
+  }
+
+  refresh(): void {
+    this.loadData(true);
+  }
+
+  private loadData(isRefresh = false): void {
+    if (isRefresh) {
+      this.isRefreshing.set(true);
+    } else {
+      this.isLoading.set(true);
+    }
+
     const headers = new HttpHeaders({ Authorization: `Bearer ${this.auth.token}` });
 
     forkJoin({
@@ -116,6 +123,7 @@ export class PreT3Status implements OnInit {
         this.buildData(myList.data, prof);
       }
       this.isLoading.set(false);
+      this.isRefreshing.set(false);
     });
   }
 
@@ -225,16 +233,8 @@ export class PreT3Status implements OnInit {
       currentStatusTitle:  title,
       currentStatusDesc:   desc,
       currentStatusIcon,
-      steps:              this.buildSteps(d),
-      timeline:           this.buildTimeline(d, info.advisorName),
-      attachments: [
-        {
-          icon: '📄',
-          name: `แบบฟอร์ม Pre-T3 (PRE-T3-${d.pre_t3_id}).pdf`,
-          meta: `สร้างเมื่อ: ${this.formatDateShort(d.created_at)}`,
-          size: '-',
-        },
-      ],
+      steps:    this.buildSteps(d),
+      timeline: this.buildTimeline(d, info.advisorName),
     };
   }
 
@@ -434,5 +434,13 @@ export class PreT3Status implements OnInit {
   closeDetail(): void {
     this.selectedId.set(null);
     document.body.style.overflow = '';
+  }
+
+  printDetail(): void {
+    document.body.classList.add('modal-print');
+    window.addEventListener('afterprint', () => {
+      document.body.classList.remove('modal-print');
+    }, { once: true });
+    window.print();
   }
 }

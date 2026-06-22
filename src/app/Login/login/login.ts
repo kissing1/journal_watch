@@ -2,7 +2,7 @@ import { Component, inject, signal, OnInit, NgZone } from '@angular/core';
 import { GOOGLE_CLIENT_ID } from '../../auth-config';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Constants } from '../../comfig/constants';
 import { Welcome } from '../../model/req/login_req';
@@ -17,6 +17,7 @@ declare const google: any;
   imports: [
     MatProgressSpinnerModule,
     MatSnackBarModule,
+    RouterModule,
   ],
   templateUrl: './login.html',
   styleUrls: ['./login.scss'],
@@ -50,7 +51,7 @@ export class Login implements OnInit {
           size: 'large',
           text: 'signin_with',
           locale: 'th',
-          width: 320,
+          width: 400,
         }
       );
     });
@@ -91,6 +92,11 @@ export class Login implements OnInit {
       
       },
     });
+  }
+
+  triggerGoogleSignIn(): void {
+    const gsiBtn = document.querySelector('#google-btn div[role="button"]') as HTMLElement;
+    gsiBtn?.click();
   }
 
   private loadGoogleScript(): Promise<void> {

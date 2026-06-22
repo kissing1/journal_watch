@@ -30,12 +30,20 @@ export class Dashboard implements OnInit {
   private constants = inject(Constants);
 
   advisorName  = '';
-  advisorEmail = '';
-  today        = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  get advisorEmail() { return this.auth.user?.msuMail ?? ''; }
+  get userPicture()  { return this.auth.userPicture; }
 
   stats = { pending: 0, approved: 0, rejected: 0, students: 0 };
 
   pendingRequests: PendingRequest[] = [];
+
+  steps = [
+    { icon: '🔔', number: 'STEP 1', title: 'รับแจ้งคำร้อง',       desc: 'ระบบแจ้งเตือนเมื่อนิสิตยื่น Pre-T3 หรือ T3 เพื่อรอลงนาม',             color: '#2563EB' },
+    { icon: '📋', number: 'STEP 2', title: 'ตรวจสอบ Checklist',   desc: 'ตรวจสอบผลการตรวจสอบ 9 ข้ออัตโนมัติและข้อมูลวารสาร',                   color: '#10B981' },
+    { icon: '✅', number: 'STEP 3', title: 'ลงนามอนุมัติ',         desc: 'พิจารณาและลงนามอนุมัติหรือไม่อนุมัติพร้อมหมายเหตุ',                    color: '#F59E0B' },
+    { icon: '📊', number: 'STEP 4', title: 'ติดตามผลคำร้อง',       desc: 'ติดตามความคืบหน้าคำร้องที่ผ่านการลงนามในขั้นถัดไป',                    color: '#8B5CF6' },
+  ];
 
   ngOnInit(): void {
     const headers = new HttpHeaders({ Authorization: `Bearer ${this.auth.token}` });
@@ -46,8 +54,7 @@ export class Dashboard implements OnInit {
       .subscribe(res => {
         if (!res?.success) return;
         const d = res.data;
-        this.advisorName  = `${d.prefix ?? ''} ${d.firstName} ${d.lastName}`.trim();
-        this.advisorEmail = d.msuMail ?? '';
+        this.advisorName = `${d.prefix ?? ''} ${d.firstName} ${d.lastName}`.trim();
       });
 
     this.http

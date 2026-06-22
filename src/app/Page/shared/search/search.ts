@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -98,6 +98,199 @@ export class Search {
   tciError     = signal('');
   activeDb     = signal<ActiveDb>('scopus');
 
+  // ── DEGREE DROPDOWN ──
+  showDegreeMenu = signal(false);
+
+  selectDegree(value: DegreeLevel): void {
+    this.degree = value;
+    this.showDegreeMenu.set(false);
+  }
+
+  get degreeOptions(): { value: DegreeLevel; label: string }[] {
+    return [
+      { value: 'doctoral', label: 'ป.เอก (Doctoral)' },
+      { value: 'master',   label: 'ป.โท (Master)' },
+    ];
+  }
+
+  get selectedDegreeLabel(): string {
+    return this.degreeOptions.find(o => o.value === this.degree)?.label ?? '';
+  }
+
+  // ── CAPTCHA (slider puzzle) ──
+  private readonly CAPTCHA_KEY = 'jw_captcha_ts';
+  private readonly CAPTCHA_TTL = 60 * 60 * 1000;
+
+  readonly CW = 320; readonly CH = 160;
+  readonly PS = 60;  readonly TR = 12;
+
+  showCaptcha  = signal(false);
+  puzzlePieceX = signal(0);
+  puzzleError  = signal(false);
+
+  private puzzleTargetX = 0;
+
+  @ViewChild('bgCanvas')    bgCvs!:    ElementRef<HTMLCanvasElement>;
+  @ViewChild('pieceCanvas') pieceCvs!: ElementRef<HTMLCanvasElement>;
+
+  private isCaptchaValid(): boolean {
+    const ts = localStorage.getItem(this.CAPTCHA_KEY);
+    if (!ts) return false;
+    return Date.now() - parseInt(ts) < this.CAPTCHA_TTL;
+  }
+
+  refreshCaptcha(): void {
+    this.puzzlePieceX.set(0);
+    this.puzzleError.set(false);
+    setTimeout(() => this.initPuzzle(), 10);
+  }
+
+  puzzleStartDrag(e: MouseEvent | TouchEvent): void {
+    e.preventDefault();
+    const startX = 'touches' in e
+      ? (e as TouchEvent).touches[0].clientX
+      : (e as MouseEvent).clientX;
+    const startPX = this.puzzlePieceX();
+
+    const onMove = (me: Event) => {
+      me.preventDefault();
+      const cx = 'touches' in me
+        ? (me as TouchEvent).touches[0].clientX
+        : (me as MouseEvent).clientX;
+      this.puzzlePieceX.set(Math.max(0, Math.min(this.CW - this.PS, startPX + cx - startX)));
+    };
+
+    const onEnd = () => {
+      document.removeEventListener('mousemove', onMove as EventListener);
+      document.removeEventListener('touchmove', onMove as EventListener);
+      document.removeEventListener('mouseup', onEnd);
+      document.removeEventListener('touchend', onEnd);
+      this.verifyPuzzle();
+    };
+
+    document.addEventListener('mousemove', onMove as EventListener);
+    document.addEventListener('touchmove', onMove as EventListener, { passive: false } as AddEventListenerOptions);
+    document.addEventListener('mouseup', onEnd);
+    document.addEventListener('touchend', onEnd);
+  }
+
+  private verifyPuzzle(): void {
+    if (Math.abs(this.puzzlePieceX() - this.puzzleTargetX) <= 8) {
+      localStorage.setItem(this.CAPTCHA_KEY, Date.now().toString());
+      this.showCaptcha.set(false);
+      this.doSearch();
+    } else {
+      this.puzzleError.set(true);
+      setTimeout(() => {
+        this.puzzleError.set(false);
+        this.puzzlePieceX.set(0);
+        setTimeout(() => this.initPuzzle(), 80);
+      }, 1000);
+    }
+  }
+
+  private initPuzzle(): void {
+    this.puzzleTargetX = 100 + Math.floor(Math.random() * (this.CW - this.PS - 120));
+    this.drawPuzzle();
+  }
+
+  private drawPuzzle(): void {
+    const bg = this.bgCvs?.nativeElement;
+    const pc = this.pieceCvs?.nativeElement;
+    if (!bg || !pc) return;
+
+    const bx = bg.getContext('2d')!;
+    const px = pc.getContext('2d')!;
+    px.clearRect(0, 0, this.PS, this.CH);
+
+    // Background gradient
+    const grad = bx.createLinearGradient(0, 0, this.CW, this.CH);
+    grad.addColorStop(0, '#1C2744');
+    grad.addColorStop(0.5, '#2A3A6E');
+    grad.addColorStop(1, '#1C2744');
+    bx.fillStyle = grad;
+    bx.fillRect(0, 0, this.CW, this.CH);
+
+    // Dot grid decoration
+    bx.save();
+    bx.globalAlpha = 0.13;
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 17; col++) {
+        bx.beginPath();
+        bx.arc(col * 20 + 10, row * 21 + 10, 2, 0, Math.PI * 2);
+        bx.fillStyle = '#E8A800';
+        bx.fill();
+      }
+    }
+    bx.restore();
+
+    // Capture piece pixels BEFORE drawing hole
+    const ty  = (this.CH - this.PS) / 2;
+    const tx  = this.puzzleTargetX;
+    const capH = this.PS + this.TR * 2;
+    const imgData = bx.getImageData(tx, ty - this.TR, this.PS, capH);
+
+    // Draw dark hole overlay
+    const holePath = this.getPiecePath(tx, ty);
+    bx.save();
+    bx.fillStyle = 'rgba(0,0,0,0.58)';
+    bx.fill(holePath);
+    bx.strokeStyle = 'rgba(255,255,255,0.35)';
+    bx.lineWidth = 1.5;
+    bx.setLineDash([4, 3]);
+    bx.stroke(holePath);
+    bx.restore();
+
+    // Draw piece via offscreen canvas (putImageData ignores clip)
+    const off = document.createElement('canvas');
+    off.width = this.PS; off.height = capH;
+    off.getContext('2d')!.putImageData(imgData, 0, 0);
+
+    const piecePath = this.getPiecePath(0, ty);
+
+    px.save();
+    px.clip(piecePath);
+    px.drawImage(off, 0, ty - this.TR);
+    px.restore();
+
+    // Piece border
+    px.save();
+    px.strokeStyle = 'rgba(255,255,255,0.9)';
+    px.lineWidth = 1.5;
+    px.shadowColor = 'rgba(0,0,0,0.4)';
+    px.shadowBlur = 4;
+    px.stroke(piecePath);
+    px.restore();
+
+    // Piece highlight (top-to-bottom gradient overlay)
+    px.save();
+    px.clip(piecePath);
+    const hl = px.createLinearGradient(0, ty, 0, ty + this.PS);
+    hl.addColorStop(0, 'rgba(255,255,255,0.22)');
+    hl.addColorStop(1, 'rgba(255,255,255,0)');
+    px.fillStyle = hl;
+    px.fillRect(0, ty, this.PS, this.PS);
+    px.restore();
+  }
+
+  private getPiecePath(x: number, y: number): Path2D {
+    const s = this.PS, r = this.TR;
+    const p = new Path2D();
+    p.moveTo(x, y);
+    // Top: tab bumps UP in center
+    p.lineTo(x + s / 2 - r, y);
+    p.arc(x + s / 2, y, r, Math.PI, 0, true);
+    p.lineTo(x + s, y);
+    // Right straight
+    p.lineTo(x + s, y + s);
+    // Bottom: notch cut inward (upward arc)
+    p.lineTo(x + s / 2 + r, y + s);
+    p.arc(x + s / 2, y + s, r, 0, Math.PI, true);
+    p.lineTo(x, y + s);
+    p.closePath();
+    return p;
+  }
+
   methods = [
     { id: 'scraping' as FetchMethod, icon: '', label: 'Web Scraping', sublabel: 'Browser automation', badge: 'Default', badgeColor: 'amber' },
     { id: 'api' as FetchMethod, icon: '', label: 'API (Scopus / TCI)', sublabel: 'ต้องใช้ API Key', badge: 'ต้องมี Key', badgeColor: 'red' },
@@ -128,6 +321,18 @@ export class Search {
   ];
 
   search(): void {
+    if (!this.issn.trim()) return;
+    if (!this.isCaptchaValid()) {
+      this.puzzlePieceX.set(0);
+      this.puzzleError.set(false);
+      this.showCaptcha.set(true);
+      setTimeout(() => this.initPuzzle(), 50);
+      return;
+    }
+    this.doSearch();
+  }
+
+  doSearch(): void {
     if (!this.issn.trim()) return;
     this.isLoading.set(true);
     this.hasSearched.set(false);
@@ -398,5 +603,9 @@ export class Search {
   private toDashedIssn(issn: string): string {
     const digits = issn.replace(/-/g, '');
     return /^\d{8}$/.test(digits) ? `${digits.slice(0, 4)}-${digits.slice(4)}` : issn;
+  }
+
+  printResult(): void {
+    window.print();
   }
 }

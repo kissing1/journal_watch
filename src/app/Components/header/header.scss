@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap');
-
+﻿
 :host {
   display: block;
   position: sticky;  
@@ -18,7 +17,7 @@
 .top-bar {
   display: flex;
   align-items: stretch;
-  background: linear-gradient(135deg, #1a1a2e 0%, #2b2b3b 60%, #1C2744 100%);
+  background: linear-gradient(135deg, #1a1a2e 0%, #333333 60%, #1C2744 100%);
   min-height: 80px;
   position: relative;
   flex-wrap: wrap;

@@ -1,3 +1,4 @@
+﻿
 $red:    #C0392B;
 $red-lt: #FDECEA;
 $navy:   #1C2744;
@@ -10,6 +11,11 @@ $muted:  #6B7280;
 $green:  #1A7A42;
 $blue:   #1A5FAB;
 $orange: #D4580A;
+
+:host {
+  display: block;
+  font-family: 'Sarabun', sans-serif;
+}
 
 /* ── PAGE ── */
 .unwanted-page {
@@ -372,6 +378,13 @@ $orange: #D4580A;
   border: 1.5px solid $border;
   overflow: hidden;
   box-shadow: 0 2px 12px rgba(28,39,68,0.06);
+
+  &::before {
+    content: '';
+    display: block;
+    height: 5px;
+    background: linear-gradient(90deg, #262D40 0%, #E0A100 100%);
+  }
 }
 
 .uw-table {
@@ -379,14 +392,14 @@ $orange: #D4580A;
   border-collapse: collapse;
 
   thead {
-    background: $navy;
+    background: #F2F1EC;
 
     th {
       padding: 14px 16px;
       text-align: left;
       font-size: 13px;
       font-weight: 700;
-      color: rgba(255,255,255,0.9);
+      color: $navy;
       white-space: nowrap;
     }
   }

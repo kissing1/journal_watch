@@ -29,7 +29,7 @@
   <!-- CARD LIST -->
   <div class="card-list">
     @if (isLoading()) {
-      <div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-text">กำลังโหลดข้อมูล...</div></div>
+      <div class="empty-state"><div class="loading-spinner"></div><div class="empty-text">กำลังโหลดข้อมูล...</div></div>
     } @else if (cards.length === 0) {
       <div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">ยังไม่มีคำร้อง T3</div></div>
     }
@@ -80,7 +80,7 @@
     <div class="modal-panel" (click)="$event.stopPropagation()">
 
       @if (detailLoading()) {
-        <div class="modal-loading">⏳ กำลังโหลดรายละเอียด...</div>
+        <div class="modal-loading"><div class="loading-spinner"></div><span>กำลังโหลดรายละเอียด...</span></div>
       } @else if (selectedDetail; as d) {
 
         <!-- MODAL HEADER -->

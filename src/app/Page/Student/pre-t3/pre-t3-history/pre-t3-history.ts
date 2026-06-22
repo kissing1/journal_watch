@@ -81,8 +81,9 @@ interface HistoryDetail {
   styleUrl: './pre-t3-history.scss',
 })
 export class PreT3History implements OnInit {
-  selectedId = signal<string | null>(null);
-  isLoading  = signal(true);
+  selectedId   = signal<string | null>(null);
+  isLoading    = signal(true);
+  isRefreshing = signal(false);
 
   cards:   HistoryCard[]                = [];
   details: Record<string, HistoryDetail> = {};
@@ -99,6 +100,20 @@ export class PreT3History implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.loadData();
+  }
+
+  refresh(): void {
+    this.loadData(true);
+  }
+
+  private loadData(isRefresh = false): void {
+    if (isRefresh) {
+      this.isRefreshing.set(true);
+    } else {
+      this.isLoading.set(true);
+    }
+
     const headers = new HttpHeaders({ Authorization: `Bearer ${this.auth.token}` });
     forkJoin({
       myList:  this.http.get<GetMyPreT3Res>(`${this.constants.API_ENDPOINT}/pre-t3/my`, { headers })
@@ -111,6 +126,7 @@ export class PreT3History implements OnInit {
         this.buildData(myList.data, prof);
       }
       this.isLoading.set(false);
+      this.isRefreshing.set(false);
     });
   }
 
@@ -327,6 +343,14 @@ export class PreT3History implements OnInit {
   closeDetail(): void {
     this.selectedId.set(null);
     document.body.style.overflow = '';
+  }
+
+  printDetail(): void {
+    document.body.classList.add('modal-print');
+    window.addEventListener('afterprint', () => {
+      document.body.classList.remove('modal-print');
+    }, { once: true });
+    window.print();
   }
 
   private formatDateShort(date: Date | string | null): string {
